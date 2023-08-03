@@ -1,4 +1,5 @@
-package org.example;
+package chess;
+import java.util.*;
 @SuppressWarnings("SpellCheckingInspection")
 public class bitboard {
     public long wp = 0L, wn = 0L, wb = 0L, wr = 0L, wq = 0L, wk = 0L,
