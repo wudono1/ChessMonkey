@@ -88,19 +88,25 @@ public class moveGen {
 
     }
 
+    public void allLegalmoves(ArrayList<move> allPseudo, int turn) {
+
+    }
+
     public ArrayList<move> moveGenerator(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn, long bb,
                                    long br, long bq, long bk, int turn, byte wCastle, byte bCastle, byte lastPawnJump) {
         byte turnKingPos = 0;
         if (turn == 1) { while (wk >>> turnKingPos != 1) {turnKingPos++;}}
         if (turn == -1) { while (bk >>> turnKingPos != 1) {turnKingPos++;}}
-        ArrayList<move> legalMoves = new ArrayList<>(70);
+        ArrayList<move> legalMoves = new ArrayList<>();
         //legalMoves initially contains all legal and pseudolegal, then trimmed down to legal
         setSquareStatus(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn);
         return legalMoves;
     }
 
-    public void generatePseudoLegal(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn,
+    public ArrayList<move> generatePseudoLegal(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn,
                                     long bb, long br, long bq, long bk, int turn, ArrayList<Integer> legalMoves) {
+        ArrayList<move> pseudoMoves = new ArrayList<>();
+        return pseudoMoves;
         //generates pseudo legal moves and stores to legalMoves
 
     }
@@ -146,8 +152,7 @@ public class moveGen {
 
     }
 
-    public ArrayList<move> pseudoWhitePawn(long wp, byte lastPawnJump) {
-        ArrayList<move> pseudoPawnMoves = new ArrayList<>(); //placeholder, most likely use list from input vars
+    public ArrayList<move> pseudoWhitePawn(long wp, int lastPawnJump, ArrayList<move> pseudoMoves) {
         long pawnCaptureRight = wp & ~H_FILE & enemyPieces>>>7; //bitwise right shift 7 for right pawn captures
         long pawnCaptureLeft = wp & ~A_FILE & enemyPieces>>>9; //bitwise right shift 9 for left pawn capture
 
@@ -155,176 +160,182 @@ public class moveGen {
         for (int i = Long.numberOfTrailingZeros(wp); i < 64 - Long.numberOfLeadingZeros(wp); i++) {
             if ((wp >>> i & 1) == 1) { //if pawn exists at ith right shift
                 if ((pawnCaptureRight >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheckWhite(wp, i, i + 7, pseudoPawnMoves, RANK_7);
+                    promoCheckWhite(wp, i, i + 7, pseudoMoves, RANK_7);
                 } else if (((RANK_5 >>> i & NOT_H >>> i & 1) == 1) & (lastPawnJump == i + 7)) {
-                    pseudoPawnMoves.add(new move(i, lastPawnJump, 2, 0));
+                    pseudoMoves.add(new move(i, lastPawnJump, 2, 0));
                     //if capture square empty, check right en passant
                 }
                 if ((pawnCaptureLeft >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheckWhite(wp, i, i + 9, pseudoPawnMoves, RANK_7);
+                    promoCheckWhite(wp, i, i + 9, pseudoMoves, RANK_7);
                 } else if (((RANK_5 >>> i & NOT_A>>> i & 1) == 1) & (lastPawnJump == i + 9)) {
-                    pseudoPawnMoves.add(new move(i, lastPawnJump, 2, 0));
+                    pseudoMoves.add(new move(i, lastPawnJump, 2, 0));
                     //if capture square empty, check left en passant
                 }
 
                 if ((empty >>> (i + 8) & 1) == 1) { ///check if can move forward one square
-                    promoCheckWhite(wp, i, i + 8, pseudoPawnMoves, RANK_7);
+                    promoCheckWhite(wp, i, i + 8, pseudoMoves, RANK_7);
                     if ((wp >>> i & RANK_2 >>> i & empty >>> (i + 16) & 1) == 1) { //check if pawn can jump 2 squares
-                        pseudoPawnMoves.add(new move(i, i + 16, 0, 0));
+                        pseudoMoves.add(new move(i, i + 16, 0, 0));
                     }
                 }
             }
 
         }
-        return pseudoPawnMoves;
+        return pseudoMoves;
     }
 
-    public ArrayList<move> pseudoBlackPawn(long bp, int lastPawnJump) {
-        ArrayList<move> pseudoPawnMoves = new ArrayList<>();
-        long pawnCaptureLeft = bp & ~H_FILE & enemyPieces<<7; //bitwise left shift 7 for left pawn captures
-        long pawnCaptureRight = bp & ~A_FILE & enemyPieces<<9; //bitwise left shift 9 for right pawn capture
+    public ArrayList<move> pseudoBlackPawn(long bp, int lastPawnJump, ArrayList<move> pseudoMoves) {
+        long pawnCaptureLeft = bp & ~A_FILE & enemyPieces<<7; //bitwise left shift 7 for left pawn captures
+        long pawnCaptureRight = bp & ~H_FILE & enemyPieces<<9; //bitwise left shift 9 for right pawn capture
         for (int i = Long.numberOfTrailingZeros(bp); i < 64 - Long.numberOfLeadingZeros(bp); i++) {
             if ((bp >>> i & 1) == 1) { //if pawn exists at ith right shift
                 if ((pawnCaptureRight >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheckWhite(bp, i, i - 9, pseudoPawnMoves, RANK_2);
+                    promoCheckWhite(bp, i, i - 9, pseudoMoves, RANK_2);
                 } else if (((RANK_4 >>> i & NOT_H >>> 1 & 1) == 1) & (lastPawnJump == i - 9)) {
-                    pseudoPawnMoves.add(new move(i, lastPawnJump, 2, 0));
+                    pseudoMoves.add(new move(i, lastPawnJump, 2, 0));
                     //if capture square empty, check right en passant
                 }
                 if ((pawnCaptureLeft >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheckWhite(bp, i, i - 7, pseudoPawnMoves, RANK_2);
+                    promoCheckWhite(bp, i, i - 7, pseudoMoves, RANK_2);
                 } else if (((RANK_4 >>> i & NOT_A >>> 1 & 1) == 1) & (lastPawnJump == i - 7)) {
-                    pseudoPawnMoves.add(new move(i, lastPawnJump, 2, 0));
+                    pseudoMoves.add(new move(i, lastPawnJump, 2, 0));
                     //if capture square empty, check right en passant
                 }
 
                 if ((empty >>> (i - 8) & 1) == 1) { ///check if can move forward one square
-                    promoCheckWhite(bp, i, i - 8, pseudoPawnMoves, RANK_2);
+                    promoCheckWhite(bp, i, i - 8, pseudoMoves, RANK_2);
                     if ((bp >>> i & RANK_7 >>> i & empty >>> (i - 16) & 1) == 1) { //check if pawn can jump 2 squares
-                        pseudoPawnMoves.add(new move(i, i - 16, 0, 0));
+                        pseudoMoves.add(new move(i, i - 16, 0, 0));
                     }
                 }
             }
 
         }
-        return pseudoPawnMoves;
+        return pseudoMoves;
     }
 
-    public ArrayList<Integer> knightAttackGen(int i) {
+    public long knightAttackGen(int i) {
         //calculate all POTENTIAL pseudo legal moves for knight at position i
         //can also be used to see if king at position i is under attack by knights
-        ArrayList<Integer> attackGen = new ArrayList<>(12);
+        long attackGen = 0L;
         //generate bitboard for specific position
-        Long nPos = 0B1L << i;
-        if ((nPos << 10 & (NOT_GH)) != 0) {attackGen.add(i + 10); }
-        if ((nPos >>> 10 & (NOT_AB)) != 0) {attackGen.add(i - 10); }
-        if ((nPos << 6 & (NOT_AB)) != 0) {attackGen.add(i + 6); }
-        if ((nPos >>> 6 & (NOT_GH)) != 0) {attackGen.add(i - 6); }
-        if ((nPos << 15 & NOT_A) != 0) {attackGen.add(i + 15); }
-        if ((nPos >>> 15 & NOT_H) != 0) {attackGen.add(i - 15); }
-        if ((nPos << 17 & NOT_H) != 0) {attackGen.add(i + 17); }
-        if ((nPos >>> 17 & NOT_A) != 0) {attackGen.add(i - 17);}
+        long nPos = 0B1L << i;
+        if ((nPos << 10 & (NOT_GH)) != 0) {attackGen = attackGen + (nPos << 10); }
+        if ((nPos >>> 10 & (NOT_AB)) != 0) {attackGen = attackGen + (nPos >>> 10); }
+        if ((nPos << 6 & (NOT_AB)) != 0) {attackGen = attackGen + (nPos << 6); }
+        if ((nPos >>> 6 & (NOT_GH)) != 0) {attackGen = attackGen + (nPos >>> 6); }
+        if ((nPos << 15 & NOT_A) != 0) {attackGen = attackGen + (nPos << 15); }
+        if ((nPos >>> 15 & NOT_H) != 0) {attackGen = attackGen + (nPos >>> 15); }
+        if ((nPos << 17 & NOT_H) != 0) {attackGen = attackGen + (nPos << 17); }
+        if ((nPos >>> 17 & NOT_A) != 0) {attackGen = attackGen + (nPos >>> 17);}
 
         return attackGen;
     }
 
-    public void pseudoKnightAtPos(int i, ArrayList<Integer> attackSquares, ArrayList<move> pseudoMoves) {
+    public void pseudoKnightAtPos(int i, long atkSqs, ArrayList<move> pseudoMoves) {
         //given list of attack squares, generate pseudo legal moves for knight
-        for (int sq : attackSquares) {
-            if ((1L << (sq) & empty) != 0 | (1L << (sq) & enemyPieces) != 0) {
-                pseudoMoves.add(new move(i, sq, 0, 0)); }
+        for (int sq = Long.numberOfTrailingZeros(atkSqs); sq < 64 - Long.numberOfLeadingZeros(atkSqs); sq++) {
+            if ((atkSqs >>> sq & 1) == 1) {
+                if ((empty >>> sq & 1) == 1 | (enemyPieces >>> sq & 1) == 1) {
+                    pseudoMoves.add(new move(i, sq, 0, 0));
+                }
+            }
         }
     }
 
-    public ArrayList<move> allPseudoKnight(Long turnKnight) {
-        ArrayList<move> pseudoKnightMoves = new ArrayList<>();
+    public ArrayList<move> allPseudoKnight(Long turnKnight, ArrayList<move> pseudoMoves) {
         for (int i = Long.numberOfTrailingZeros(turnKnight); i < 64 - Long.numberOfLeadingZeros(turnKnight); i++) {
             if ((turnKnight >>> i & 1) == 1) {
-                pseudoKnightAtPos(i, knightAttackGen(i), pseudoKnightMoves);}
+                pseudoKnightAtPos(i, knightAttackGen(i), pseudoMoves);}
         }
-        return pseudoKnightMoves;
+        return pseudoMoves;
     }
 
-    public ArrayList<move> pseudoBishop(long turnBishop) {
-        ArrayList<move> allPseudoMoves = new ArrayList<>();
+    public ArrayList<move> pseudoBishop(long turnBishop, ArrayList<move> pseudoMoves) {
         for (int i = Long.numberOfTrailingZeros(turnBishop); i < 64 - Long.numberOfLeadingZeros(turnBishop); i++) {
             if ((turnBishop >>> i & 1) == 1) { //if queen at square
                 long validPseudo = diagSliding(i);
                 //find possible attack squares for all files, ranks, diags
                 for (int j = Long.numberOfTrailingZeros(validPseudo); j < 64 - Long.numberOfLeadingZeros(validPseudo);
-                     j++) { if ((validPseudo >>> j & 1) == 1) { allPseudoMoves.add(new move(i, j, 0, 0)); }}
+                     j++) { if ((validPseudo >>> j & 1) == 1) { pseudoMoves.add(new move(i, j, 0, 0)); }}
                 //add all attack squares to ArrayList pseudoMoves
             }
         }
-        return allPseudoMoves;
+        return pseudoMoves;
     }
 
-    public ArrayList<move> pseudoRook(long turnRook) {
-        ArrayList<move> allPseudoMoves = new ArrayList<>();
+    public ArrayList<move> pseudoRook(long turnRook, ArrayList<move> pseudoMoves) {
         for (int i = Long.numberOfTrailingZeros(turnRook); i < 64 - Long.numberOfLeadingZeros(turnRook); i++) {
             if ((turnRook >>> i & 1) == 1) { //if queen at square
                 long validPseudo = rankFileSliding(i);
                 //find possible attack squares for all files, ranks, diags
                 for (int j = Long.numberOfTrailingZeros(validPseudo); j < 64 - Long.numberOfLeadingZeros(validPseudo);
-                     j++) { if ((validPseudo >>> j & 1) == 1) { allPseudoMoves.add(new move(i, j, 0, 0)); }}
+                     j++) { if ((validPseudo >>> j & 1) == 1) { pseudoMoves.add(new move(i, j, 0, 0)); }}
                 //add all attack squares to ArrayList pseudoMoves
             }
         }
-        return allPseudoMoves;
+        return pseudoMoves;
     }
 
 
-    public ArrayList<move> pseudoQueen(long turnQueen) {
-        ArrayList<move> allPseudoMoves = new ArrayList<>();
+    public ArrayList<move> pseudoQueen(long turnQueen, ArrayList<move> pseudoMoves) {
         for (int i = Long.numberOfTrailingZeros(turnQueen); i < 64 - Long.numberOfLeadingZeros(turnQueen); i++) {
             if ((turnQueen >>> i & 1) == 1) { //if queen at square
                 long validPseudo = rankFileSliding(i) | diagSliding(i);
                 //find possible attack squares for all files, ranks, diags
                 for (int j = Long.numberOfTrailingZeros(validPseudo); j < 64 - Long.numberOfLeadingZeros(validPseudo);
-                     j++) { if ((validPseudo >>> j & 1) == 1) { allPseudoMoves.add(new move(i, j, 0, 0)); }}
+                     j++) { if ((validPseudo >>> j & 1) == 1) { pseudoMoves.add(new move(i, j, 0, 0)); }}
                 //add all attack squares to ArrayList pseudoMoves
             }
         }
-        return allPseudoMoves;
+        return pseudoMoves;
     }
 
-    public ArrayList<move> pseudoKing(long turnKing, int turnKingPos, byte turnCastling, int turn) {
-        ArrayList<move> pseudoKingMoves = new ArrayList<>();
+    public ArrayList<move> pseudoKing(long turnKing, long turnRooks, long turnCastling, int turn,
+                                      ArrayList<move> pseudoMoves) {
+        int turnKingPos = Long.numberOfTrailingZeros(turnKing);
         if (((turnKing >>> 1 & empty) != 0) || ((turnKing >>> 1 & enemyPieces) != 0)) {
             //if right square is empty or has enemy piece
-            pseudoKingMoves.add(new move(turnKingPos, turnKingPos - 1, 0, 0));
+            pseudoMoves.add(new move(turnKingPos, turnKingPos - 1, 0, 0));
         } if (((turnKing << 1 & empty) != 0) || ((turnKing << 1 & enemyPieces) != 0)) {
             //if left square is empty or has enemy piece
-            pseudoKingMoves.add(new move(turnKingPos, turnKingPos + 1, 0, 0));
+            pseudoMoves.add(new move(turnKingPos, turnKingPos + 1, 0, 0));
         } if (((turnKing >>> 8 & empty) != 0) || ((turnKing >>> 8 & enemyPieces) != 0)) {
             //if square directly below is empty or has enemy piece
-            pseudoKingMoves.add(new move(turnKingPos, turnKingPos - 8, 0, 0));
+            pseudoMoves.add(new move(turnKingPos, turnKingPos - 8, 0, 0));
         } if (((turnKing << 8 & empty) != 0) || ((turnKing << 8 & enemyPieces) != 0)) {
             //if  square directly above is empty or has enemy piece
-            pseudoKingMoves.add(new move(turnKingPos, turnKingPos + 8, 0, 0));
+            pseudoMoves.add(new move(turnKingPos, turnKingPos + 8, 0, 0));
         } if (((turnKing >>> 9 & empty) != 0) || ((turnKing >>> 9 & enemyPieces) != 0)) {
             //if diag lower right square is empty or has enemy piece
-            pseudoKingMoves.add(new move(turnKingPos, turnKingPos - 9, 0, 0));
+            pseudoMoves.add(new move(turnKingPos, turnKingPos - 9, 0, 0));
         } if (((turnKing << 9 & empty) != 0) || ((turnKing << 9 & enemyPieces) != 0)) {
             //if diag upper left square is empty or has enemy piece
-            pseudoKingMoves.add(new move(turnKingPos, turnKingPos + 9, 0, 0));
+            pseudoMoves.add(new move(turnKingPos, turnKingPos + 9, 0, 0));
         } if (((turnKing >>> 7 & empty) != 0) || ((turnKing >>> 7 & enemyPieces) != 0)) {
             //if diag lower left square is empty or has enemy piece
-            pseudoKingMoves.add(new move(turnKingPos, turnKingPos - 7, 0, 0));
+            pseudoMoves.add(new move(turnKingPos, turnKingPos - 7, 0, 0));
         } if (((turnKing << 7 & empty) != 0) || ((turnKing << 7 & enemyPieces) != 0)) {
             //if diag upper left square is empty or has enemy piece
-            pseudoKingMoves.add(new move(turnKingPos, turnKingPos - 7, 0, 0));
+            pseudoMoves.add(new move(turnKingPos, turnKingPos - 7, 0, 0));
         }
-        if (turnCastling != 0) { //for castling
+        if (turn == 1 && turnKingPos != 3) {turnCastling = 0;}
+        if (turn == -1 && turnKingPos != 59) {turnCastling = 0;}
+        if ((turnCastling & 1) == 1) { //check if kside castling valid
+            if ((turnRooks>>>(turnKingPos - 3) & 1) != 1) { turnCastling = (turnCastling - 1);}
+        } if ((turnCastling >>> 1 & 1) == 1) { //check if qside turn castling valid
+            if ((turnRooks>>>(turnKingPos + 4) & 1) != 1) { turnCastling = (turnCastling - 2);}
+        }
+        if (turnCastling != 0) { //for castling moves
             if ((turnCastling & 1) == 1) { //kingside castling
                 if ((empty >>> (turnKingPos - 1) & empty >>> (turnKingPos - 2) & 1) == 1) {
-                    pseudoKingMoves.add(new move(turnKingPos, turnKingPos - 2, 1, 0));}
+                    pseudoMoves.add(new move(turnKingPos, turnKingPos - 2, 1, 0));}
             } if ((turnCastling >>> 1 & 1) == 1) { //queenside castling
                 if ((empty >>> (turnKingPos + 1) & empty >>> (turnKingPos + 2) & empty>>> (turnKingPos + 3) & 1) == 1) {
-                    pseudoKingMoves.add(new move(turnKingPos, turnKingPos + 3, 1, 0));}
+                    pseudoMoves.add(new move(turnKingPos, turnKingPos + 2, 1, 0));}
             }
         }
-        return pseudoKingMoves;
+        return pseudoMoves;
     }
 
     public static void main(String[] args) {

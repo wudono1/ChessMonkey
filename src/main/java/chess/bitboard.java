@@ -4,8 +4,12 @@ import java.util.*;
 public class bitboard {
     public long wp = 0L, wn = 0L, wb = 0L, wr = 0L, wq = 0L, wk = 0L,
             bp = 0L, bn = 0L, bb = 0L, br = 0L, bq = 0L, bk = 0L;
+    public int turn;
+    public long wCastle = 0L, bCastle = 0L; //2 bits each, left bit is queenside, right bit is kingside
+    public int lastPawnMove;
+    public int movesSinceLastPawn = -1;
+    public int plyCount = 0;
     public int wkPos, bkPos;
-    public int wCastle, bCastle; //2 bits each, left bit is queenside, right bit is kingside
     private final String[] arrBoard = new String[64];
     //h1 = arrBoard[0], a8 = arrBoard[63]
 
@@ -15,16 +19,43 @@ public class bitboard {
         setBitboards("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
         setKingPos();
         setBoardArray();
-        wCastle = 0B11;
-        bCastle = 0B11;
+        turn = 1;
+        wCastle = 0B11L;
+        bCastle = 0B11L;
+        lastPawnMove = -1;
+        movesSinceLastPawn = 0;
     }
     public bitboard(String FEN) {  //given a specific FEN
-        setBitboards(FEN);
-        setKingPos();
+        String[] split = FEN.split("\\s+");
+        setBitboards(split[0]);  //set bitboards based on FEN position
+        setKingPos(); //set king position
         setBoardArray();
-        wCastle = 0B11;
-        bCastle = 0B11;
-        //SET WHITE AND BLACK CASTLE!!!!!!!!
+        if (Objects.equals(split[1], "w")) {turn = 1;} //set turn
+        if (Objects.equals(split[1], "b")) {turn = -1;}
+
+        if (split[2].contains("K")) {wCastle = wCastle + 0B1L;} //set castling rights
+        if (split[2].contains("Q")) {wCastle = wCastle + 0B10L;}
+        if (split[2].contains("k")) {bCastle = bCastle + 0B1L;}
+        if (split[2].contains("q")) {bCastle = bCastle + 0B10L;}
+
+        Hashtable<String, Integer> fileToInt = new Hashtable<>();
+        fileToInt.put("h", 0);
+        fileToInt.put("g", 1);
+        fileToInt.put("f", 2);
+        fileToInt.put("e", 3);
+        fileToInt.put("d", 4);
+        fileToInt.put("c", 5);
+        fileToInt.put("b", 6);
+        fileToInt.put("a", 7);
+
+        if (!Objects.equals(split[3], "-")) {
+            lastPawnMove = lastPawnMove + fileToInt.get(split[3].substring(0, 1)); //set last pawn move
+            lastPawnMove = lastPawnMove + ((Character.getNumericValue(split[3].charAt(2)) - 1) * 8);
+        } else { lastPawnMove = -1;}
+        movesSinceLastPawn = Character.getNumericValue(split[4].charAt(0)); //set plyCount
+        plyCount = (Character.getNumericValue(split[5].charAt(0)) - 1) * 2;
+        if (turn == -1) { plyCount = plyCount + 1;}
+
     }
 
     public String[] getArrayBoard() {
@@ -150,30 +181,34 @@ public class bitboard {
     }
 
     public static void main(String[] args) {
-        String startPos = "rnbqkbnr/pppppppp/8/8/8/8/PP1P1PPP/R2QKBNR";
+        String startPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         int side = 1;
         bitboard btb = new bitboard(startPos);
         btb.printArrayBoard();
+        /*System.out.println("last pawn move: " + btb.lastPawnMove);
+        System.out.println("moves since last pawn move: " + btb.movesSinceLastPawn);
+        System.out.println("plycount: " + btb.plyCount);
+        System.out.println("white castle; " + btb.wCastle);
+        System.out.println("black castle; " + btb.bCastle);
+        System.out.println("turn: " + btb.turn);
+        System.out.println("wkpos: " + btb.wkPos + " bkpos: " + btb.bkPos);*/
         moveGen moves = new moveGen();
         moves.setSquareStatus(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk,
                 btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, side);
-        System.out.println(btb.wq);
-        int pos = Long.numberOfTrailingZeros(btb.wq);
-        System.out.println(pos);
 
 
-
-        ArrayList<move> pawnMoves = new ArrayList<move>();
+        /*ArrayList<move> pawnMoves = new ArrayList<move>();
         byte lastPawnMove = 0;
         pawnMoves = moves.pseudoWhitePawn(btb.wp, lastPawnMove);
         int i = 1;
         for (move pMove : pawnMoves) {
             System.out.println(i + ": [" + pMove.start + ", " + pMove.dest + "]");
             i++;
-        }
+        }*/
 
-        ArrayList<move> rookMoves = moves.pseudoRook(btb.wr);
-        for (move nMove : rookMoves) {
+        ArrayList<move> pm = new ArrayList<>();
+        ArrayList<move> knightMoves = moves.allPseudoKnight(btb.wn, pm);
+        for (move nMove : knightMoves) {
             System.out.println("[" + nMove.start + ", " + nMove.dest + "]");
 
 
