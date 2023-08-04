@@ -149,7 +149,7 @@ public class bitboard {
     }
 
     public static void main(String[] args) {
-        String startPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPP1PPP/3QKBNR";
+        String startPos = "rnbqkbnr/pppppppp/8/8/8/8/PP1P1PPP/3QKBNR";
         int side = 1;
         bitboard btb = new bitboard(startPos);
         btb.printArrayBoard();
@@ -171,8 +171,8 @@ public class bitboard {
             i++;
         }*/
 
-        ArrayList<move> queenMoves = moves.pseudoQueen(btb.wq);
-        for (move nMove : queenMoves) {
+        ArrayList<move> bishopMoves = moves.pseudoBishop(btb.wb);
+        for (move nMove : bishopMoves) {
             System.out.println("[" + nMove.start + ", " + nMove.dest + "]");
 
 
