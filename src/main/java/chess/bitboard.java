@@ -149,20 +149,20 @@ public class bitboard {
     }
 
     public static void main(String[] args) {
-        String startPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+        String startPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPP1PPP/3QKBNR";
         int side = 1;
         bitboard btb = new bitboard(startPos);
         btb.printArrayBoard();
         moveGen moves = new moveGen();
         moves.setSquareStatus(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk,
                 btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, side);
-        System.out.println(Long.toBinaryString(moves.getTurnPieces()));
-        System.out.println(Long.toBinaryString(moves.getEnemyPieces()));
-        System.out.println(Long.toBinaryString(moves.getTurnKing()));
-        System.out.println(Long.toBinaryString(moves.getEnemyKing()));
+        System.out.println(btb.wq);
+        int pos = Long.numberOfTrailingZeros(btb.wq);
+        System.out.println(pos);
 
-        /*
-        ArrayList<move> pawnMoves = new ArrayList<move>();
+
+
+        /*ArrayList<move> pawnMoves = new ArrayList<move>();
         byte lastPawnMove = 0;
         pawnMoves = moves.pseudoWhitePawn(btb.wp, lastPawnMove);
         int i = 1;
@@ -170,9 +170,12 @@ public class bitboard {
             System.out.println(i + ": [" + pMove.start + ", " + pMove.dest + "]");
             i++;
         }*/
-        ArrayList<move> knightMoves = moves.allPseudoKnight(btb.wn);
-        for (move nMove : knightMoves) {
+
+        ArrayList<move> queenMoves = moves.pseudoQueen(btb.wq);
+        for (move nMove : queenMoves) {
             System.out.println("[" + nMove.start + ", " + nMove.dest + "]");
+
+
         }
     }
 }

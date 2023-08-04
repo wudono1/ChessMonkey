@@ -51,7 +51,7 @@ public class moveGen {
     static final long[] FILES = //h file to a file. Remainder 0 = h file, remainder 7 = a file
             { 0x0101010101010101L, 0x0202020202020202L, 0x0404040404040404L, 0x0808080808080808L, 0x1010101010101010L,
                     0x2020202020202020L, 0x4040404040404040L, 0x8080808080808080L};
-    static long TR_BL_DIAGS[] =/*from top right to bottom left*/
+    static long[] TR_BL_DIAGS =/*from top right to bottom left*/
             //index [(s / 8) + (s % 8)]
             { 0x1L, 0x102L, 0x10204L, 0x1020408L, 0x102040810L, 0x10204081020L, 0x1020408102040L, 0x102040810204080L,
                     0x204081020408000L, 0x408102040800000L, 0x810204080000000L, 0x1020408000000000L,
@@ -108,13 +108,14 @@ public class moveGen {
     public long rankFileSliding(int pos) {  //horizontal and vertical sliding
         long slider = 0x1L << pos;
         long rankOccupancy = RANKS[pos / 8] & occupied; //horizontal piece slide
-        long posRankAttacks = (rankOccupancy ^ (rankOccupancy - 2 * slider)) & (enemyPieces | empty); //positive rank
-        long negRankAttacks = (rankOccupancy ^ Long.reverse((Long.reverse(rankOccupancy) - 2 * Long.reverse(slider)))) &
-                (enemyPieces | empty); //negative rank
+        long posRankAttacks = (rankOccupancy ^ (rankOccupancy - 2 * slider)) & (enemyPieces | empty)
+                & RANKS[pos / 8]; //positive rank
+        long negRankAttacks = (rankOccupancy ^ Long.reverse(Long.reverse(rankOccupancy) - 2 * Long.reverse(slider))) &
+                (enemyPieces | empty) & RANKS[pos / 8]; //negative rank
         long fileOccupancy = FILES[pos % 8] & occupied; //check file
         long posFileAttacks = (fileOccupancy ^ (fileOccupancy - 2 * slider)) & (enemyPieces | empty) & FILES[pos % 8];
         //pos file
-        long negFileAttacks = Long.reverse(fileOccupancy) ^ (Long.reverse(fileOccupancy) - 2 * Long.reverse(slider)) &
+        long negFileAttacks = (fileOccupancy ^ Long.reverse(Long.reverse(fileOccupancy) - 2 * Long.reverse(slider))) &
                 (enemyPieces | empty) & FILES[pos % 8]; //neg file
         return (posRankAttacks | negRankAttacks | posFileAttacks | negFileAttacks);
     }
@@ -244,8 +245,8 @@ public class moveGen {
     public void pseudoKnightAtPos(int i, ArrayList<Integer> attackSquares, ArrayList<move> pseudoMoves) {
         //given list of attack squares, generate pseudo legal moves for knight
         for (int sq : attackSquares) {
-            if ((0L << (i + sq) & empty) != 0 | (0L << (i + sq) & enemyPieces) != 0) {
-                pseudoMoves.add(new move(i, i + sq, 0, 0)); }
+            if ((1L << (sq) & empty) != 0 | (1L << (sq) & enemyPieces) != 0) {
+                pseudoMoves.add(new move(i, sq, 0, 0)); }
         }
     }
 
@@ -260,7 +261,7 @@ public class moveGen {
 
     public ArrayList<move> pseudoBishop(long turnBishop) {
         ArrayList<move> allPseudoMoves = new ArrayList<move>();
-        for (int i = Long.numberOfTrailingZeros(turnBishop); i < Long.numberOfLeadingZeros(turnBishop); i++) {
+        for (int i = Long.numberOfTrailingZeros(turnBishop); i < 64 - Long.numberOfLeadingZeros(turnBishop); i++) {
             if ((turnBishop >>> i & 1) == 1) { //if queen at square
                 long validPseudo = diagSliding(i);
                 //find possible attack squares for all files, ranks, diags
@@ -280,12 +281,12 @@ public class moveGen {
 
     public ArrayList<move> pseudoQueen(long turnQueen) {
         ArrayList<move> allPseudoMoves = new ArrayList<move>();
-        for (int i = Long.numberOfTrailingZeros(turnQueen); i < Long.numberOfLeadingZeros(turnQueen); i++) {
+        for (int i = Long.numberOfTrailingZeros(turnQueen); i < 64 - Long.numberOfLeadingZeros(turnQueen); i++) {
             if ((turnQueen >>> i & 1) == 1) { //if queen at square
                 long validPseudo = rankFileSliding(i) | diagSliding(i);
                 //find possible attack squares for all files, ranks, diags
-                for (int j = Long.numberOfTrailingZeros(validPseudo); i < Long.numberOfLeadingZeros(validPseudo);
-                     i++) { if ((validPseudo >>> j & 1) == 1) { allPseudoMoves.add(new move(i, j, 0, 0)); }}
+                for (int j = Long.numberOfTrailingZeros(validPseudo); j < 64 - Long.numberOfLeadingZeros(validPseudo);
+                     j++) { if ((validPseudo >>> j & 1) == 1) { allPseudoMoves.add(new move(i, j, 0, 0)); }}
                 //add all attack squares to ArrayList pseudoMoves
             }
         }
