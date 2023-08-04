@@ -163,14 +163,14 @@ public class bitboard {
 
 
 
-        /*ArrayList<move> pawnMoves = new ArrayList<move>();
+        ArrayList<move> pawnMoves = new ArrayList<move>();
         byte lastPawnMove = 0;
         pawnMoves = moves.pseudoWhitePawn(btb.wp, lastPawnMove);
         int i = 1;
         for (move pMove : pawnMoves) {
             System.out.println(i + ": [" + pMove.start + ", " + pMove.dest + "]");
             i++;
-        }*/
+        }
 
         ArrayList<move> rookMoves = moves.pseudoRook(btb.wr);
         for (move nMove : rookMoves) {
