@@ -265,7 +265,7 @@ public class moveGen {
             if ((turnBishop >>> i & 1) == 1) { //if queen at square
                 long validPseudo = diagSliding(i);
                 //find possible attack squares for all files, ranks, diags
-                for (int j = Long.numberOfTrailingZeros(validPseudo); i < Long.numberOfLeadingZeros(validPseudo);
+                for (int j = Long.numberOfTrailingZeros(validPseudo); i < 64 - Long.numberOfLeadingZeros(validPseudo);
                      i++) { if ((validPseudo >>> j & 1) == 1) { allPseudoMoves.add(new move(i, j, 0, 0)); }}
                 //add all attack squares to ArrayList pseudoMoves
             }
