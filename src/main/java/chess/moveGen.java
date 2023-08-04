@@ -135,20 +135,6 @@ public class moveGen {
         return (posAttacks_TRBL | negAttacks_TRBL | posAttacks_TLBR | negAttacks_TLBR);
     }
 
-    public ArrayList<move> pseudoRook(long turnRook) {
-        ArrayList<move> allPseudoMoves = new ArrayList<move>();
-        for (int i = Long.numberOfTrailingZeros(turnRook); i < Long.numberOfLeadingZeros(turnRook); i++) {
-            if ((turnRook >>> i & 1) == 1) { //if queen at square
-                long validPseudo = rankFileSliding(i);
-                //find possible attack squares for all files, ranks, diags
-                for (int j = Long.numberOfTrailingZeros(validPseudo); i < Long.numberOfLeadingZeros(validPseudo);
-                     i++) { if ((validPseudo >>> j & 1) == 1) { allPseudoMoves.add(new move(i, j, 0, 0)); }}
-                //add all attack squares to ArrayList pseudoMoves
-            }
-        }
-        return allPseudoMoves;
-    }
-
     public void promoCheckWhite(long wp, int start, int dest, ArrayList<move> moves, long rank) {
         //given rank (rank 2 for black or rank 7 for white) if pawn at rank 2 or 7, then add promotion move
         if ((wp >>> (start) & rank >>> (start) & 1) == 1) { //checks if startpos is at rank 7
@@ -273,11 +259,20 @@ public class moveGen {
         return allPseudoMoves;
     }
 
-    public ArrayList<move> pseudoRookMoves(long turnRooks) {
-        ArrayList<move> pseudoMoves = new ArrayList<>();
-
-        return pseudoMoves;
+    public ArrayList<move> pseudoRook(long turnRook) {
+        ArrayList<move> allPseudoMoves = new ArrayList<move>();
+        for (int i = Long.numberOfTrailingZeros(turnRook); i < 64 - Long.numberOfLeadingZeros(turnRook); i++) {
+            if ((turnRook >>> i & 1) == 1) { //if queen at square
+                long validPseudo = rankFileSliding(i);
+                //find possible attack squares for all files, ranks, diags
+                for (int j = Long.numberOfTrailingZeros(validPseudo); j < 64 - Long.numberOfLeadingZeros(validPseudo);
+                     j++) { if ((validPseudo >>> j & 1) == 1) { allPseudoMoves.add(new move(i, j, 0, 0)); }}
+                //add all attack squares to ArrayList pseudoMoves
+            }
+        }
+        return allPseudoMoves;
     }
+
 
     public ArrayList<move> pseudoQueen(long turnQueen) {
         ArrayList<move> allPseudoMoves = new ArrayList<move>();
