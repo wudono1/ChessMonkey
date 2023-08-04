@@ -88,12 +88,12 @@ public class moveGen {
 
     }
 
-    public ArrayList<move> moveGen(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn, long bb,
+    public ArrayList<move> moveGenerator(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn, long bb,
                                    long br, long bq, long bk, int turn, byte wCastle, byte bCastle, byte lastPawnJump) {
         byte turnKingPos = 0;
         if (turn == 1) { while (wk >>> turnKingPos != 1) {turnKingPos++;}}
         if (turn == -1) { while (bk >>> turnKingPos != 1) {turnKingPos++;}}
-        ArrayList<move> legalMoves = new ArrayList<move>(70);
+        ArrayList<move> legalMoves = new ArrayList<>(70);
         //legalMoves initially contains all legal and pseudolegal, then trimmed down to legal
         setSquareStatus(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn);
         return legalMoves;
@@ -147,7 +147,7 @@ public class moveGen {
     }
 
     public ArrayList<move> pseudoWhitePawn(long wp, byte lastPawnJump) {
-        ArrayList<move> pseudoPawnMoves = new ArrayList<move>(); //placeholder, most likely use list from input vars
+        ArrayList<move> pseudoPawnMoves = new ArrayList<>(); //placeholder, most likely use list from input vars
         long pawnCaptureRight = wp & ~H_FILE & enemyPieces>>>7; //bitwise right shift 7 for right pawn captures
         long pawnCaptureLeft = wp & ~A_FILE & enemyPieces>>>9; //bitwise right shift 9 for left pawn capture
 
@@ -180,7 +180,7 @@ public class moveGen {
     }
 
     public ArrayList<move> pseudoBlackPawn(long bp, int lastPawnJump) {
-        ArrayList<move> pseudoPawnMoves = new ArrayList<move>();
+        ArrayList<move> pseudoPawnMoves = new ArrayList<>();
         long pawnCaptureLeft = bp & ~H_FILE & enemyPieces<<7; //bitwise left shift 7 for left pawn captures
         long pawnCaptureRight = bp & ~A_FILE & enemyPieces<<9; //bitwise left shift 9 for right pawn capture
         for (int i = Long.numberOfTrailingZeros(bp); i < 64 - Long.numberOfLeadingZeros(bp); i++) {
@@ -213,7 +213,7 @@ public class moveGen {
     public ArrayList<Integer> knightAttackGen(int i) {
         //calculate all POTENTIAL pseudo legal moves for knight at position i
         //can also be used to see if king at position i is under attack by knights
-        ArrayList<Integer> attackGen = new ArrayList<Integer>(12);
+        ArrayList<Integer> attackGen = new ArrayList<>(12);
         //generate bitboard for specific position
         Long nPos = 0B1L << i;
         if ((nPos << 10 & (NOT_GH)) != 0) {attackGen.add(i + 10); }
@@ -237,7 +237,7 @@ public class moveGen {
     }
 
     public ArrayList<move> allPseudoKnight(Long turnKnight) {
-        ArrayList<move> pseudoKnightMoves = new ArrayList<move>();
+        ArrayList<move> pseudoKnightMoves = new ArrayList<>();
         for (int i = Long.numberOfTrailingZeros(turnKnight); i < 64 - Long.numberOfLeadingZeros(turnKnight); i++) {
             if ((turnKnight >>> i & 1) == 1) {
                 pseudoKnightAtPos(i, knightAttackGen(i), pseudoKnightMoves);}
@@ -246,7 +246,7 @@ public class moveGen {
     }
 
     public ArrayList<move> pseudoBishop(long turnBishop) {
-        ArrayList<move> allPseudoMoves = new ArrayList<move>();
+        ArrayList<move> allPseudoMoves = new ArrayList<>();
         for (int i = Long.numberOfTrailingZeros(turnBishop); i < 64 - Long.numberOfLeadingZeros(turnBishop); i++) {
             if ((turnBishop >>> i & 1) == 1) { //if queen at square
                 long validPseudo = diagSliding(i);
@@ -260,7 +260,7 @@ public class moveGen {
     }
 
     public ArrayList<move> pseudoRook(long turnRook) {
-        ArrayList<move> allPseudoMoves = new ArrayList<move>();
+        ArrayList<move> allPseudoMoves = new ArrayList<>();
         for (int i = Long.numberOfTrailingZeros(turnRook); i < 64 - Long.numberOfLeadingZeros(turnRook); i++) {
             if ((turnRook >>> i & 1) == 1) { //if queen at square
                 long validPseudo = rankFileSliding(i);
@@ -275,7 +275,7 @@ public class moveGen {
 
 
     public ArrayList<move> pseudoQueen(long turnQueen) {
-        ArrayList<move> allPseudoMoves = new ArrayList<move>();
+        ArrayList<move> allPseudoMoves = new ArrayList<>();
         for (int i = Long.numberOfTrailingZeros(turnQueen); i < 64 - Long.numberOfLeadingZeros(turnQueen); i++) {
             if ((turnQueen >>> i & 1) == 1) { //if queen at square
                 long validPseudo = rankFileSliding(i) | diagSliding(i);
@@ -289,7 +289,7 @@ public class moveGen {
     }
 
     public ArrayList<move> pseudoKing(long turnKing, int turnKingPos, byte turnCastling, int turn) {
-        ArrayList<move> pseudoKingMoves = new ArrayList<move>();
+        ArrayList<move> pseudoKingMoves = new ArrayList<>();
         if (((turnKing >>> 1 & empty) != 0) || ((turnKing >>> 1 & enemyPieces) != 0)) {
             //if right square is empty or has enemy piece
             pseudoKingMoves.add(new move(turnKingPos, turnKingPos - 1, 0, 0));

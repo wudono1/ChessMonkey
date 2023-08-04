@@ -6,10 +6,11 @@ public class bitboard {
             bp = 0L, bn = 0L, bb = 0L, br = 0L, bq = 0L, bk = 0L;
     public int wkPos, bkPos;
     public int wCastle, bCastle; //2 bits each, left bit is queenside, right bit is kingside
-    private String[] arrBoard = new String[64];
+    private final String[] arrBoard = new String[64];
     //h1 = arrBoard[0], a8 = arrBoard[63]
 
     // piece bitboards
+    @SuppressWarnings("unused")
     public bitboard() { //default set to startpos FEN
         setBitboards("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
         setKingPos();
@@ -89,43 +90,43 @@ public class bitboard {
         for (int i = 0; i < FEN.length(); i++) {
             if (isInt(FEN.substring(i, i + 1))) {
                 posCount = posCount + Integer.parseInt(FEN.substring(i, i + 1));
-            } else if (!FEN.substring(i, i + 1).equals("/")) {
+            } else if (FEN.charAt(i) != '/') {
                 posCount++;
                 long addPos = Long.parseUnsignedLong("1" + zeroes.substring(posCount), 2);
-                if (FEN.substring(i, i + 1).equals("P")) {
+                if (FEN.charAt(i) == 'P') {
                     wp = wp + addPos;
                 }
-                if (FEN.substring(i, i + 1).equals("N")) {
+                if (FEN.charAt(i) == 'N') {
                     wn = wn + addPos;
                 }
-                if (FEN.substring(i, i + 1).equals("B")) {
+                if (FEN.charAt(i) == 'B') {
                     wb = wb + addPos;
                 }
-                if (FEN.substring(i, i + 1).equals("R")) {
+                if (FEN.charAt(i) == 'R') {
                     wr = wr + addPos;
                 }
-                if (FEN.substring(i, i + 1).equals("Q")) {
+                if (FEN.charAt(i) == 'Q') {
                     wq = wq + addPos;
                 }
-                if (FEN.substring(i, i + 1).equals("K")) {
+                if (FEN.charAt(i) == 'K') {
                     wk = wk + addPos;
                 }
-                if (FEN.substring(i, i + 1).equals("p")) {
+                if (FEN.charAt(i) == 'p') {
                     bp = bp + addPos;
                 }
-                if (FEN.substring(i, i + 1).equals("n")) {
+                if (FEN.charAt(i) == 'n') {
                     bn = bn + addPos;
                 }
-                if (FEN.substring(i, i + 1).equals("b")) {
+                if (FEN.charAt(i) == 'b') {
                     bb = bb + addPos;
                 }
-                if (FEN.substring(i, i + 1).equals("r")) {
+                if (FEN.charAt(i) == 'r') {
                     br = br + addPos;
                 }
-                if (FEN.substring(i, i + 1).equals("q")) {
+                if (FEN.charAt(i) == 'q') {
                     bq = bq + addPos;
                 }
-                if (FEN.substring(i, i + 1).equals("k")) {
+                if (FEN.charAt(i) == 'k') {
                     bk = bk + addPos;
                 }
             }
@@ -136,7 +137,7 @@ public class bitboard {
 
     @SuppressWarnings("unused")
     public boolean isInt (String str){
-        if (str.length() < 1) {
+        if (str.isEmpty()) {
             return false;
         } else {
             try {
