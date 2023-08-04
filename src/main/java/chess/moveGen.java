@@ -93,7 +93,7 @@ public class moveGen {
     }
 
     public ArrayList<move> moveGenerator(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn, long bb,
-                                   long br, long bq, long bk, int turn, byte wCastle, byte bCastle, byte lastPawnJump) {
+                                   long br, long bq, long bk, int turn, byte wCastle, byte bCastle, int lastPawnMove) {
         byte turnKingPos = 0;
         if (turn == 1) { while (wk >>> turnKingPos != 1) {turnKingPos++;}}
         if (turn == -1) { while (bk >>> turnKingPos != 1) {turnKingPos++;}}
@@ -104,8 +104,10 @@ public class moveGen {
     }
 
     public ArrayList<move> generatePseudoLegal(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn,
-                                    long bb, long br, long bq, long bk, int turn, ArrayList<Integer> legalMoves) {
+                                    long bb, long br, long bq, long bk, int lastPawnJump, int turn,
+                                    ArrayList<Integer> legalMoves) {
         ArrayList<move> pseudoMoves = new ArrayList<>();
+        if (turn == 1) {pseudoWhitePawn(wp, lastPawnJump, pseudoMoves);}
         return pseudoMoves;
         //generates pseudo legal moves and stores to legalMoves
 
