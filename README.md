@@ -1,3 +1,3 @@
 # ChessMonkey
-Java chess engine \n
+Java chess engine\
 Bitboard representation
