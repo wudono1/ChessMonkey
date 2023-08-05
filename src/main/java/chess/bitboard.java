@@ -185,7 +185,7 @@ public class bitboard {
     }
 
     public static void main(String[] args) {
-        String startPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        String startPos = "rnbqkbnr/ppppppPp/8/8/8/8/8/RNBQKBNR w KQkq - 0 1";
         int side = 1;
         bitboard btb = new bitboard(startPos);
         btb.printArrayBoard();
@@ -197,6 +197,7 @@ public class bitboard {
         System.out.println("turn: " + btb.turn);
         System.out.println("wkpos: " + btb.wkPos + " bkpos: " + btb.bkPos);*/
         moveGen moves = new moveGen();
+        makeMove mover = new makeMove();
         moves.setSquareStatus(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk,
                 btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, side);
 
@@ -216,20 +217,22 @@ public class bitboard {
 
 
         }*/
-
+        int lpj = 43;
         ArrayList<move> allPseudo = moves.generatePseudoLegal(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk,
                                                               btb.lastPawnJump, btb.wCastle, btb.turn);
         int i = 1;
         for (move nMove : allPseudo) {
-            System.out.println("[" + nMove.start + ", " + nMove.dest + "]");
+            System.out.print("[" + nMove.start + ", " + nMove.dest + " ");
+            if (nMove.promo != 0) {System.out.print(", " + nMove.promo); }
+            System.out.print("], ");
             i++;
+            if (i % 12 == 0) {System.out.println(); }
         }
-        long wr = btb.wr;
+        System.out.println();
+        HashMap<Long, Long> newBoards = mover.bitboardChange(allPseudo.get(0), btb.wp, btb.wn, btb.wb, btb.wr, btb.wq,
+                btb.wk, btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, btb.turn);
+        System.out.println(newBoards);
 
-        System.out.println(wr);
-        long pos = -9223372036854775808L;
-        wr = wr + (1L << 63);
-        System.out.println(wr);
 
 
     }
