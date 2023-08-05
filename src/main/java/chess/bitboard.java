@@ -7,7 +7,11 @@ public class bitboard {
     public int turn;
     public long wCastle = 0L, bCastle = 0L; //2 bits each, left bit is queenside, right bit is kingside
     public int lastPawnMove;
+
+    public int lastPawnJump = -1;
     public int movesSinceLastPawn = -1;
+
+    int plyCount_50Move = 0;
     public int plyCount = 0;
     public int wkPos, bkPos;
     private final String[] arrBoard = new String[64];
@@ -22,7 +26,7 @@ public class bitboard {
         turn = 1;
         wCastle = 0B11L;
         bCastle = 0B11L;
-        lastPawnMove = -1;
+        lastPawnJump = -1;
         movesSinceLastPawn = 0;
     }
     public bitboard(String FEN) {  //given a specific FEN
@@ -49,10 +53,10 @@ public class bitboard {
         fileToInt.put("a", 7);
 
         if (!Objects.equals(split[3], "-")) {
-            lastPawnMove = lastPawnMove + fileToInt.get(split[3].substring(0, 1)); //set last pawn move
-            lastPawnMove = lastPawnMove + ((Character.getNumericValue(split[3].charAt(2)) - 1) * 8);
-        } else { lastPawnMove = -1;}
-        movesSinceLastPawn = Character.getNumericValue(split[4].charAt(0)); //set plyCount
+            lastPawnJump = lastPawnJump + fileToInt.get(split[3].substring(0, 1)); //set last pawn move
+            lastPawnJump = lastPawnJump + ((Character.getNumericValue(split[3].charAt(2)) - 1) * 8);
+        } else { lastPawnJump = -1;}
+        plyCount_50Move = Character.getNumericValue(split[4].charAt(0)); //set plyCount
         plyCount = (Character.getNumericValue(split[5].charAt(0)) - 1) * 2;
         if (turn == -1) { plyCount = plyCount + 1;}
 
@@ -196,22 +200,37 @@ public class bitboard {
         moves.setSquareStatus(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk,
                 btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, side);
 
-
+        ArrayList<move> pm = new ArrayList<>();
         /*ArrayList<move> pawnMoves = new ArrayList<move>();
-        byte lastPawnMove = 0;
-        pawnMoves = moves.pseudoWhitePawn(btb.wp, lastPawnMove);
+        pawnMoves = moves.pseudoWhitePawn(btb.wp, btb.lastPawnJump, pm);
         int i = 1;
         for (move pMove : pawnMoves) {
             System.out.println(i + ": [" + pMove.start + ", " + pMove.dest + "]");
             i++;
-        }*/
+        }
 
-        ArrayList<move> pm = new ArrayList<>();
+
         ArrayList<move> knightMoves = moves.allPseudoKnight(btb.wn, pm);
         for (move nMove : knightMoves) {
             System.out.println("[" + nMove.start + ", " + nMove.dest + "]");
 
 
+        }*/
+
+        ArrayList<move> allPseudo = moves.generatePseudoLegal(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk,
+                                                              btb.lastPawnJump, btb.wCastle, btb.turn);
+        int i = 1;
+        for (move nMove : allPseudo) {
+            System.out.println("[" + nMove.start + ", " + nMove.dest + "]");
+            i++;
         }
+        long wr = btb.wr;
+
+        System.out.println(wr);
+        long pos = -9223372036854775808L;
+        wr = wr + (1L << 63);
+        System.out.println(wr);
+
+
     }
 }
