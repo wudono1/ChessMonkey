@@ -364,9 +364,7 @@ public class moveGen {
             if ((atkSqs >>> sq & 1) == 1) {
                 if ((empty >>> sq & 1) == 1 | (enemyPieces >>> sq & 1) == 1) {
                     pseudoMoves.add(new move(i, sq, 0, 0));
-                }
-            }
-        }
+                }}}
     }
 
     public ArrayList<move> allPseudoKnight(Long turnKnight, ArrayList<move> pseudoMoves) {
@@ -440,13 +438,15 @@ public class moveGen {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public ArrayList<move> pseudoKing(long turnKingBB, long turnRooks, long turnCastling, int turn,
+    public ArrayList<move> pseudoKing(long turnKingBits, long turnRooks, long turnCastling, int turn,
                                       ArrayList<move> pseudoMoves) {
-        int kingPos = Long.numberOfTrailingZeros(turnKingBB);
+        int kingPos = Long.numberOfTrailingZeros(turnKingBits);
         long attackGen = kingAttackGen(kingPos);
 
-        for (int j = Long.numberOfTrailingZeros(attackGen); j < 64 - Long.numberOfLeadingZeros(attackGen); j++) {
-            if ((attackGen >>> j & 1) == 1) { pseudoMoves.add(new move(kingPos, j, 0, 0)); }}
+        for (int sq = Long.numberOfTrailingZeros(attackGen); sq < 64 - Long.numberOfLeadingZeros(attackGen); sq++) {
+            if ((attackGen >>> sq & 1) == 1) {
+                if ((empty >>> sq & 1) == 1 | (enemyPieces >>> sq & 1) == 1) {
+                    pseudoMoves.add(new move(kingPos, sq, 0, 0)); }}}
 
         if (turn == 1 && kingPos != 3) {turnCastling = 0;}
         if (turn == -1 && kingPos != 59) {turnCastling = 0;}
