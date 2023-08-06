@@ -74,7 +74,7 @@ public class bitboard {
                 }
                 System.out.print(arrBoard[8 * i + j] + "| ");
                 if ((8 * i + j) % 8 == 0) {
-                    System.out.println();
+                    System.out.println((i + j) * 8);
                 }
             }
         }
@@ -189,13 +189,6 @@ public class bitboard {
         int side = 1;
         bitboard btb = new bitboard(startPos);
         btb.printArrayBoard();
-        /*System.out.println("last pawn move: " + btb.lastPawnMove);
-        System.out.println("moves since last pawn move: " + btb.movesSinceLastPawn);
-        System.out.println("plycount: " + btb.plyCount);
-        System.out.println("white castle; " + btb.wCastle);
-        System.out.println("black castle; " + btb.bCastle);
-        System.out.println("turn: " + btb.turn);
-        System.out.println("wkpos: " + btb.wkPos + " bkpos: " + btb.bkPos);*/
         moveGen moves = new moveGen();
         moves.setSquareStatus(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk,
                 btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, side);
@@ -228,8 +221,10 @@ public class bitboard {
             if (i % 12 == 0) {System.out.println(); }
         }
         System.out.println();
-        moves.checkLegality(allPseudo.get(0), btb.wp, btb.wn, btb.wb, btb.wr, btb.wq,
-                btb.wk, btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, btb.turn);
+
+        System.out.println(btb.wp);
+        System.out.println(moves.checkLegality(allPseudo.get(0), btb.wp, btb.wn, btb.wb, btb.wr, btb.wq,
+                btb.wk, btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, btb.turn));
         System.out.println(btb.wp);
         System.out.println();
 

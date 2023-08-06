@@ -106,9 +106,8 @@ public class moveGen {
         // if rook or queen (horizontal or vertical) check found, return false
 
         //check if enemy king is attacking sq
-        if (((ek >>> (sq + 1) & 1) == 1) || ((ek >>> (sq - 1) & 1) == 1) || ((ek >>> (sq + 8) & 1) == 1) ||
-        ((ek >>> (sq - 8) & 1) == 1) || ((ek >>> (sq + 7) & 1) == 1) || ((ek >>> (sq - 7) & 1) == 1) ||
-        ((ek >>> (sq + 9) & 1) == 1) || ((ek >>> (sq - 9) & 1) == 1)) { return true;}
+        long enemyKingChecks = kingAttackGen(sq);
+        if (((ek & enemyKingChecks) != 0)) { return true;}
 
         long rankFileChecks = rankFileSliding(sq);
         if (((eq & rankFileChecks) != 0) || ((er & rankFileChecks) != 0)) { return true;}
@@ -418,49 +417,51 @@ public class moveGen {
         return pseudoMoves;
     }
 
+    public long kingAttackGen(int i) {
+        //calculate all POTENTIAL pseudo legal moves for knight at position i
+        //can also be used to see if king at position i is under attack by king
+        long kingPos = 0B1L << i;
+        long attackGen = 0L;
+        //generate bitboard for specific position
+        if ((kingPos & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1 << (i - 8)); } //move down vertically
+        if ((kingPos & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1 << (i + 8)); } //move up vertically
+        if ((kingPos & (~FILE_MASKS[0])) != 0) {attackGen = attackGen + (1 << (i - 1)); } //move right horizontal
+        if ((kingPos & (~FILE_MASKS[7])) != 0) {attackGen = attackGen + (1 << (i + 1)); } //move right horizontal
+        //bottom left diag
+        if ((kingPos & (~FILE_MASKS[7]) & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1<<(i - 7)); }
+        //bottom right diag
+        if ((kingPos & (~FILE_MASKS[0]) & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1<<(i - 9)); }
+        //top left diag
+        if ((kingPos & (~FILE_MASKS[7]) & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1<<(i + 9)); }
+        //top right diag
+        if ((kingPos & (~FILE_MASKS[0]) & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1<<(i + 7)); }
+
+        return attackGen;
+    }
+
     @SuppressWarnings("UnusedReturnValue")
-    public ArrayList<move> pseudoKing(long turnKing, long turnRooks, long turnCastling, int turn,
+    public ArrayList<move> pseudoKing(long turnKingBB, long turnRooks, long turnCastling, int turn,
                                       ArrayList<move> pseudoMoves) {
-        int turnKingPos = Long.numberOfTrailingZeros(turnKing);
-        if (((turnKing >>> 1 & empty) != 0) || ((turnKing >>> 1 & enemyPieces) != 0)) {
-            //if right square is empty or has enemy piece
-            pseudoMoves.add(new move(turnKingPos, turnKingPos - 1, 0, 0));
-        } if (((turnKing << 1 & empty) != 0) || ((turnKing << 1 & enemyPieces) != 0)) {
-            //if left square is empty or has enemy piece
-            pseudoMoves.add(new move(turnKingPos, turnKingPos + 1, 0, 0));
-        } if (((turnKing >>> 8 & empty) != 0) || ((turnKing >>> 8 & enemyPieces) != 0)) {
-            //if square directly below is empty or has enemy piece
-            pseudoMoves.add(new move(turnKingPos, turnKingPos - 8, 0, 0));
-        } if (((turnKing << 8 & empty) != 0) || ((turnKing << 8 & enemyPieces) != 0)) {
-            //if  square directly above is empty or has enemy piece
-            pseudoMoves.add(new move(turnKingPos, turnKingPos + 8, 0, 0));
-        } if (((turnKing >>> 9 & empty) != 0) || ((turnKing >>> 9 & enemyPieces) != 0)) {
-            //if diag lower right square is empty or has enemy piece
-            pseudoMoves.add(new move(turnKingPos, turnKingPos - 9, 0, 0));
-        } if (((turnKing << 9 & empty) != 0) || ((turnKing << 9 & enemyPieces) != 0)) {
-            //if diag upper left square is empty or has enemy piece
-            pseudoMoves.add(new move(turnKingPos, turnKingPos + 9, 0, 0));
-        } if (((turnKing >>> 7 & empty) != 0) || ((turnKing >>> 7 & enemyPieces) != 0)) {
-            //if diag lower left square is empty or has enemy piece
-            pseudoMoves.add(new move(turnKingPos, turnKingPos - 7, 0, 0));
-        } if (((turnKing << 7 & empty) != 0) || ((turnKing << 7 & enemyPieces) != 0)) {
-            //if diag upper left square is empty or has enemy piece
-            pseudoMoves.add(new move(turnKingPos, turnKingPos - 7, 0, 0));
-        }
-        if (turn == 1 && turnKingPos != 3) {turnCastling = 0;}
-        if (turn == -1 && turnKingPos != 59) {turnCastling = 0;}
+        int kingPos = Long.numberOfTrailingZeros(turnKingBB);
+        long attackGen = kingAttackGen(kingPos);
+
+        for (int j = Long.numberOfTrailingZeros(attackGen); j < 64 - Long.numberOfLeadingZeros(attackGen); j++) {
+            if ((attackGen >>> j & 1) == 1) { pseudoMoves.add(new move(kingPos, j, 0, 0)); }}
+
+        if (turn == 1 && kingPos != 3) {turnCastling = 0;}
+        if (turn == -1 && kingPos != 59) {turnCastling = 0;}
         if ((turnCastling & 1) == 1) { //check if kside castling valid
-            if ((turnRooks>>>(turnKingPos - 3) & 1) != 1) { turnCastling = (turnCastling - 1);}
+            if ((turnRooks>>>(kingPos - 3) & 1) != 1) { turnCastling = (turnCastling - 1);}
         } if ((turnCastling >>> 1 & 1) == 1) { //check if qside turn castling valid
-            if ((turnRooks>>>(turnKingPos + 4) & 1) != 1) { turnCastling = (turnCastling - 2);}
+            if ((turnRooks>>>(kingPos + 4) & 1) != 1) { turnCastling = (turnCastling - 2);}
         }
         if (turnCastling != 0) { //for castling moves
             if ((turnCastling & 1) == 1) { //kingside castling
-                if ((empty >>> (turnKingPos - 1) & empty >>> (turnKingPos - 2) & 1) == 1) {
-                    pseudoMoves.add(new move(turnKingPos, turnKingPos - 2, 1, 0));}
+                if ((empty >>> (kingPos - 1) & empty >>> (kingPos - 2) & 1) == 1) {
+                    pseudoMoves.add(new move(kingPos, kingPos - 2, 1, 0));}
             } if ((turnCastling >>> 1 & 1) == 1) { //queenside castling
-                if ((empty >>> (turnKingPos + 1) & empty >>> (turnKingPos + 2) & empty>>> (turnKingPos + 3) & 1) == 1) {
-                    pseudoMoves.add(new move(turnKingPos, turnKingPos + 2, 1, 0));}
+                if ((empty >>> (kingPos + 1) & empty >>> (kingPos + 2) & empty>>> (kingPos + 3) & 1) == 1) {
+                    pseudoMoves.add(new move(kingPos, kingPos + 2, 1, 0));}
             }
         }
         return pseudoMoves;
