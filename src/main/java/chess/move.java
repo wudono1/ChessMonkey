@@ -1,5 +1,4 @@
 package chess;
-import java.util.*;
 
 public class move {
     public int start;

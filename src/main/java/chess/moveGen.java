@@ -102,9 +102,8 @@ public class moveGen {
             if (((ep >>> (sq - 7) & 1) == 1) || ((ep >>> (sq - 9) & 1) == 1)) {
                 return true; }} //if pawn checks, return true
         long findKnightChecks = knightAttackGen(sq);
-        for (int i = Long.numberOfTrailingZeros(findKnightChecks); i < 64 - Long.numberOfLeadingZeros(findKnightChecks); i++) {
-            if ((findKnightChecks >>> i & en >>> i & 1) == 1) { return true;} // if knight check found, return false
-        }
+        if ((en & findKnightChecks) != 0) { return true;}
+        // if rook or queen (horizontal or vertical) check found, return false
 
         //check if enemy king is attacking sq
         if (((ek >>> (sq + 1) & 1) == 1) || ((ek >>> (sq - 1) & 1) == 1) || ((ek >>> (sq + 8) & 1) == 1) ||
@@ -112,75 +111,56 @@ public class moveGen {
         ((ek >>> (sq + 9) & 1) == 1) || ((ek >>> (sq - 9) & 1) == 1)) { return true;}
 
         long rankFileChecks = rankFileSliding(sq);
-        for (int i = Long.numberOfTrailingZeros(rankFileChecks); i < 64 - Long.numberOfLeadingZeros(rankFileChecks); i++) {
-            if ((rankFileChecks >>> i & 1) == 1) {
-                if (((eq >>> i & 1) == 1) || ((er >>> i & 1) == 1)) {
-                    return true;
-                }} // if rook or queen (horizontal or vertical) check found, return false
-        }
+        if (((eq & rankFileChecks) != 0) || ((er & rankFileChecks) != 0)) { return true;}
+        // if rook or queen (horizontal or vertical) check found, return false
+
         long diagChecks = diagSliding(sq);
-        for (int i = Long.numberOfTrailingZeros(diagChecks); i < 64 - Long.numberOfLeadingZeros(diagChecks); i++) {
-            if ((diagChecks >>> i & 1) == 1) {
-                if (((eq >>> i & 1) == 1) || ((eb >>> i & 1) == 1)) {
-                    return true;
-                }} // if bishop or queen (diagonal) check found, return false
-        }
+        //noinspection RedundantIfStatement
+        if (((er & diagChecks) != 0) || ((eb & diagChecks) != 0)) { return true;}
+        // if rook or queen (horizontal or vertical) check found, return false
         return false;
     }
 
     public Boolean checkLegality(move pMove, long tp, long tn, long tb, long tr, long tq, long tk, long ep, long en,
                                 long eb, long er, long eq, long ek, int turn) {
         //takes a pseudolegal move and checks if it is legal
-        //changing bitboards for one pseudoMove, will store original copies in hashmap and return
-        System.out.println(tp);
-        HashMap<Long, Long> changedBitboards= new HashMap<Long, Long>();
         //maps pseudolegal bitboards to original bitboard to undo move
+
+        //&~ = taking piece off bitboard
+        //| = adding piece to bitboard
         if ((tp >>> pMove.start & 1) == 1) {
-            long oStart = tp; //storing original bitboard position
             if (pMove.moveType == 3) { //if promotion
-                tp = tp - (1L << (pMove.start)); //change turn pawn bitboards
+                tp = tp & ~(1L << (pMove.start)); //change turn pawn bitboards
                 if (pMove.promo == 2) { //changing promotion piece bitboards
-                    long origPromoPc = tn;
-                    tn = tn + (1L << pMove.dest);
+                    tn = tn | (1L << pMove.dest);
                 } if (pMove.promo == 3) {
-                    long origPromoPc = tb;
-                    tb = tb + (1L << pMove.dest);
+                    tb = tb | (1L << pMove.dest);
                 } if (pMove.promo == 4) {
-                    long origPromoPc = tr;
-                    tr = tr + (1L << pMove.dest);
+                    tr = tr | (1L << pMove.dest);
                 } if (pMove.promo == 5) {
-                    long origPromoPc = tq;
-                    tq = tq + (1L << pMove.dest);
+                    tq = tq | (1L << pMove.dest);
                 }
             }
             else {
-                tp = tp - (1L << (pMove.start)) + (1L << (pMove.dest)); // making the pseudomove
+                tp = (tp & ~(1L << (pMove.start))) | (1L << (pMove.dest)); // making the pseudomove
                 if (pMove.moveType == 2) { //if en passant
-                    long origEPawn; //original enemy pawn configuration
                     if (turn == 1) { //for changing enemy pawn bitboards
-                        origEPawn = ep;
-                        ep = ep - (1L << (pMove.dest - 8));
+                        ep = ep & ~(1L << (pMove.dest - 8));
                     }
                     if (turn == -1) {
-                        origEPawn = ep;
-                        ep = ep - (1L << (pMove.dest + 8));}
+                        ep = ep & ~(1L << (pMove.dest + 8));}
                 }
             }
         } if ((tn >>> pMove.start & 1) == 1) { //knight
-            long oStart = tn;
-            tn = tn - (1L << (pMove.start)) + (1L << (pMove.dest));
+            tn = (tn & ~(1L << (pMove.start))) | (1L << (pMove.dest));
         } if ((tb >>> pMove.start & 1) == 1) { //bishop
-            long oStart = tb;
-            tb = tb - (1L << (pMove.start)) + (1L << (pMove.dest));
+            tb = (tb & ~(1L << (pMove.start))) | (1L << (pMove.dest));
         } if ((tr >>> pMove.start & 1) == 1) { //rook
-            long oStart = tr;
-            tr = tr - (1L << (pMove.start)) + (1L << (pMove.dest));
+            tr = (tr & ~(1L << (pMove.start))) | (1L << (pMove.dest));
         } if ((tq >>> pMove.start & 1) == 1) { //queen
-            long oStart = tq;
-            tq = tq - (1L << (pMove.start)) + (1L << (pMove.dest));
+            tq = (tq & ~(1L << (pMove.start))) | (1L << (pMove.dest));
         } if ((tk >>> pMove.start & 1) == 1) { //king
-            long oStart = tk;
-            tk = tk - (1L << (pMove.start)) + (1L << (pMove.dest));
+            tk = (tk & ~(1L << (pMove.start))) | (1L << (pMove.dest));
             if (pMove.moveType == 1) { //if castling
                 if (squareInCheck(Long.numberOfTrailingZeros(tk), ep, en, eb, er, eq, ek, turn)) {return false;}
                 //if about to castle but king is in check, return false
@@ -189,34 +169,27 @@ public class moveGen {
                     if (squareInCheck(Long.numberOfTrailingZeros(tk) - 1, ep, en, eb, er, eq, ek, turn)) {return false;}
                     //if king not in check but moves thru check when castling, return False
 
-                    long oRook = tr;
-                    tr = tr - (1L<<(pMove.dest - 1)) + (1L << (pMove.dest + 1));
+                    tr = (tr & ~(1L<<(pMove.dest - 1))) | (1L << (pMove.dest + 1));
                 } if (pMove.start < pMove.dest) { //queenside castling
                     if (squareInCheck(Long.numberOfTrailingZeros(tk) - 1, ep, en, eb, er, eq, ek, turn)) {return false;}
                     //if king not in check but moves thru check when castling, return False
 
-                    long oRook = tr;
-                    tr = tr - (1L<<(pMove.dest + 2)) + (1L << (pMove.dest - 1));
+                    tr = (tr & ~(1L<<(pMove.dest + 2))) | (1L << (pMove.dest - 1));
                 }
             }
         }
 
         //checking if capture at dest square
         if ((ep >>> pMove.dest & 1) == 1) { //enemy pawn captured
-            long oDest = ep;
-            ep = ep - (1L << (pMove.dest));
+            ep = ep & ~(1L << (pMove.dest));
         } if ((en >>> pMove.dest & 1) == 1) { //enemy knight capture
-            long oDest = en;
-            en = en - (1L << (pMove.dest));
+            en = en & ~(1L << (pMove.dest));
         } if ((eb >>> pMove.dest & 1) == 1) { //enemy bishop captured
-            long oDest = eb;
-            eb = eb - (1L << (pMove.dest));
+            eb = eb & ~(1L << (pMove.dest));
         } if ((er >>> pMove.dest & 1) == 1) { //enemy rook captured
-            long oDest = er;
-            er = er - (1L << (pMove.dest));
+            er = er & ~(1L << (pMove.dest));
         } if ((eq >>> pMove.dest & 1) == 1) { //enemy queen captured
-            long oDest = eq;
-            eq = eq - (1L << (pMove.dest));
+            eq = eq & ~(1L << (pMove.dest));
         }
 
         //update occupancy bitboards from new piece bitboards
