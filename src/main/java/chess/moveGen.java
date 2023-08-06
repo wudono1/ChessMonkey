@@ -82,13 +82,32 @@ public class moveGen {
                                    long br, long bq, long bk, int turn, long wCastle, long bCastle, int lastPawnJump) {
         int turnKingPos = 0;
         setSquareStatus(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn);
-        ArrayList<move> pseudoMoves = new ArrayList<>();
-        if (turn == 1) {
-            pseudoMoves = generatePseudoLegal(wp, wn, wb, wr, wq, wk, lastPawnJump, wCastle, turn);
-        } if (turn == -1) {
-            pseudoMoves = generatePseudoLegal(bp, bn, bb, br, bq, bk, lastPawnJump, bCastle, turn);
-        }
         ArrayList<move> legalMoves = new ArrayList<>();
+        if (turn == 1) { //if white to move
+            legalMoves = generatePseudoLegal(wp, wn, wb, wr, wq, wk, lastPawnJump, wCastle, turn);
+            int i = 0;
+            int lstSize = legalMoves.size();
+            while (i < lstSize) {
+                if (checkLegality(legalMoves.get(i), wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn)) {
+                    i++;
+                } else {
+                    legalMoves.remove(i);
+                    lstSize = legalMoves.size();
+                }
+            }
+        } if (turn == -1) { //if black to move
+            legalMoves = generatePseudoLegal(bp, bn, bb, br, bq, bk, lastPawnJump, bCastle, turn);
+            int i = 0;
+            int lstSize = legalMoves.size();
+            while (i < lstSize) {
+                if (checkLegality(legalMoves.get(i), bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk, turn)) {
+                    i++;
+                } else {
+                    legalMoves.remove(i);
+                    lstSize = legalMoves.size();
+                }
+            }
+        }
         //legalMoves initially contains all legal and pseudolegal, then trimmed down to legal
         return legalMoves;
     }
@@ -367,7 +386,7 @@ public class moveGen {
                 }}}
     }
 
-    public ArrayList<move> allPseudoKnight(Long turnKnight, ArrayList<move> pseudoMoves) {
+    public ArrayList<move> allPseudoKnight(long turnKnight, ArrayList<move> pseudoMoves) {
         for (int i = Long.numberOfTrailingZeros(turnKnight); i < 64 - Long.numberOfLeadingZeros(turnKnight); i++) {
             if ((turnKnight >>> i & 1) == 1) {
                 pseudoKnightAtPos(i, knightAttackGen(i), pseudoMoves);}

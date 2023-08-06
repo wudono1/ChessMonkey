@@ -222,10 +222,8 @@ public class bitboard {
         }
         System.out.println();
 
-        System.out.println(btb.wp);
         System.out.println(moves.checkLegality(allPseudo.get(0), btb.wp, btb.wn, btb.wb, btb.wr, btb.wq,
                 btb.wk, btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, btb.turn));
-        System.out.println(btb.wp);
         System.out.println();
 
 
