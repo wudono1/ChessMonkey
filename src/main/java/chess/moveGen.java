@@ -41,17 +41,17 @@ public class moveGen {
     static final long RANK_7 = 0B0000000011111111000000000000000000000000000000000000000000000000L;
 
 
-    static final long[] RANKS = //rank 1 to rank 8
+    static final long[] RANK_MASKS = //rank 1 to rank 8
             { 0xFFL, 0xFF00L, 0xFF0000L, 0xFF000000L, 0xFF00000000L, 0xFF0000000000L, 0xFF000000000000L, 0xFF00000000000000L};
-    static final long[] FILES = //h file to a file. Remainder 0 = h file, remainder 7 = a file
+    static final long[] FILE_MASKS = //h file to a file. Remainder 0 = h file, remainder 7 = a file
             { 0x0101010101010101L, 0x0202020202020202L, 0x0404040404040404L, 0x0808080808080808L, 0x1010101010101010L,
                     0x2020202020202020L, 0x4040404040404040L, 0x8080808080808080L};
-    static long[] TR_BL_DIAGS =/*from top right to bottom left*/
+    static long[] TR_BL_DIAG_MASKS =/*from top right to bottom left*/
             //index [(s / 8) + (s % 8)]
             { 0x1L, 0x102L, 0x10204L, 0x1020408L, 0x102040810L, 0x10204081020L, 0x1020408102040L, 0x102040810204080L,
                     0x204081020408000L, 0x408102040800000L, 0x810204080000000L, 0x1020408000000000L,
                     0x2040800000000000L, 0x4080000000000000L, 0x8000000000000000L};
-    static final long[] TL_BR_DIAGS =
+    static final long[] TL_BR_DIAG_MASKS =
             //index (s / 8) + 7 - (s % 8)
             {0x80L, 0x8040L, 0x804020L, 0x80402010L, 0x8040201008L, 0x804020100804L, 0x80402010080402L,
                     0x8040201008040201L, 0x4020100804020100L, 0x2010080402010000L, 0x1008040201000000L,
@@ -81,7 +81,6 @@ public class moveGen {
     public ArrayList<move> moveGenerator(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn, long bb,
                                    long br, long bq, long bk, int turn, long wCastle, long bCastle, int lastPawnJump) {
         int turnKingPos = 0;
-        makeMove mover = new makeMove();
         setSquareStatus(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn);
         ArrayList<move> pseudoMoves = new ArrayList<>();
         if (turn == 1) {
@@ -92,6 +91,157 @@ public class moveGen {
         ArrayList<move> legalMoves = new ArrayList<>();
         //legalMoves initially contains all legal and pseudolegal, then trimmed down to legal
         return legalMoves;
+    }
+
+    public Boolean squareInCheck(int sq, long ep, long en, long eb, long er, long eq, long ek, int turn) {
+        //checks if square is in check. Used for seeing if king in check, but also for castling purposes
+        if (turn == 1) {
+            if (((ep >>> (sq + 7) & 1) == 1) || ((ep >>> (sq + 9) & 1) == 1)) {
+                return true; }} //if pawn checks, return true
+        if (turn == -1) {
+            if (((ep >>> (sq - 7) & 1) == 1) || ((ep >>> (sq - 9) & 1) == 1)) {
+                return true; }} //if pawn checks, return true
+        long findKnightChecks = knightAttackGen(sq);
+        for (int i = Long.numberOfTrailingZeros(findKnightChecks); i < 64 - Long.numberOfLeadingZeros(findKnightChecks); i++) {
+            if ((findKnightChecks >>> i & en >>> i & 1) == 1) { return true;} // if knight check found, return false
+        }
+
+        //check if enemy king is attacking sq
+        if (((ek >>> (sq + 1) & 1) == 1) || ((ek >>> (sq - 1) & 1) == 1) || ((ek >>> (sq + 8) & 1) == 1) ||
+        ((ek >>> (sq - 8) & 1) == 1) || ((ek >>> (sq + 7) & 1) == 1) || ((ek >>> (sq - 7) & 1) == 1) ||
+        ((ek >>> (sq + 9) & 1) == 1) || ((ek >>> (sq - 9) & 1) == 1)) { return true;}
+
+        long rankFileChecks = rankFileSliding(sq);
+        for (int i = Long.numberOfTrailingZeros(rankFileChecks); i < 64 - Long.numberOfLeadingZeros(rankFileChecks); i++) {
+            if ((rankFileChecks >>> i & 1) == 1) {
+                if (((eq >>> i & 1) == 1) || ((er >>> i & 1) == 1)) {
+                    return true;
+                }} // if rook or queen (horizontal or vertical) check found, return false
+        }
+        long diagChecks = diagSliding(sq);
+        for (int i = Long.numberOfTrailingZeros(diagChecks); i < 64 - Long.numberOfLeadingZeros(diagChecks); i++) {
+            if ((diagChecks >>> i & 1) == 1) {
+                if (((eq >>> i & 1) == 1) || ((eb >>> i & 1) == 1)) {
+                    return true;
+                }} // if bishop or queen (diagonal) check found, return false
+        }
+        return false;
+    }
+
+    public Boolean checkLegality(move pMove, long tp, long tn, long tb, long tr, long tq, long tk, long ep, long en,
+                                long eb, long er, long eq, long ek, int turn) {
+        //takes a pseudolegal move and checks if it is legal
+        //changing bitboards for one pseudoMove, will store original copies in hashmap and return
+        System.out.println(tp);
+        HashMap<Long, Long> changedBitboards= new HashMap<Long, Long>();
+        //maps pseudolegal bitboards to original bitboard to undo move
+        if ((tp >>> pMove.start & 1) == 1) {
+            long oStart = tp; //storing original bitboard position
+            if (pMove.moveType == 3) { //if promotion
+                tp = tp - (1L << (pMove.start)); //change turn pawn bitboards
+                if (pMove.promo == 2) { //changing promotion piece bitboards
+                    long origPromoPc = tn;
+                    tn = tn + (1L << pMove.dest);
+                } if (pMove.promo == 3) {
+                    long origPromoPc = tb;
+                    tb = tb + (1L << pMove.dest);
+                } if (pMove.promo == 4) {
+                    long origPromoPc = tr;
+                    tr = tr + (1L << pMove.dest);
+                } if (pMove.promo == 5) {
+                    long origPromoPc = tq;
+                    tq = tq + (1L << pMove.dest);
+                }
+            }
+            else {
+                tp = tp - (1L << (pMove.start)) + (1L << (pMove.dest)); // making the pseudomove
+                if (pMove.moveType == 2) { //if en passant
+                    long origEPawn; //original enemy pawn configuration
+                    if (turn == 1) { //for changing enemy pawn bitboards
+                        origEPawn = ep;
+                        ep = ep - (1L << (pMove.dest - 8));
+                    }
+                    if (turn == -1) {
+                        origEPawn = ep;
+                        ep = ep - (1L << (pMove.dest + 8));}
+                }
+            }
+        } if ((tn >>> pMove.start & 1) == 1) { //knight
+            long oStart = tn;
+            tn = tn - (1L << (pMove.start)) + (1L << (pMove.dest));
+        } if ((tb >>> pMove.start & 1) == 1) { //bishop
+            long oStart = tb;
+            tb = tb - (1L << (pMove.start)) + (1L << (pMove.dest));
+        } if ((tr >>> pMove.start & 1) == 1) { //rook
+            long oStart = tr;
+            tr = tr - (1L << (pMove.start)) + (1L << (pMove.dest));
+        } if ((tq >>> pMove.start & 1) == 1) { //queen
+            long oStart = tq;
+            tq = tq - (1L << (pMove.start)) + (1L << (pMove.dest));
+        } if ((tk >>> pMove.start & 1) == 1) { //king
+            long oStart = tk;
+            tk = tk - (1L << (pMove.start)) + (1L << (pMove.dest));
+            if (pMove.moveType == 1) { //if castling
+                if (squareInCheck(Long.numberOfTrailingZeros(tk), ep, en, eb, er, eq, ek, turn)) {return false;}
+                //if about to castle but king is in check, return false
+
+                if (pMove.start > pMove.dest) { //kingside castling
+                    if (squareInCheck(Long.numberOfTrailingZeros(tk) - 1, ep, en, eb, er, eq, ek, turn)) {return false;}
+                    //if king not in check but moves thru check when castling, return False
+
+                    long oRook = tr;
+                    tr = tr - (1L<<(pMove.dest - 1)) + (1L << (pMove.dest + 1));
+                } if (pMove.start < pMove.dest) { //queenside castling
+                    if (squareInCheck(Long.numberOfTrailingZeros(tk) - 1, ep, en, eb, er, eq, ek, turn)) {return false;}
+                    //if king not in check but moves thru check when castling, return False
+
+                    long oRook = tr;
+                    tr = tr - (1L<<(pMove.dest + 2)) + (1L << (pMove.dest - 1));
+                }
+            }
+        }
+
+        //checking if capture at dest square
+        if ((ep >>> pMove.dest & 1) == 1) { //enemy pawn captured
+            long oDest = ep;
+            ep = ep - (1L << (pMove.dest));
+        } if ((en >>> pMove.dest & 1) == 1) { //enemy knight capture
+            long oDest = en;
+            en = en - (1L << (pMove.dest));
+        } if ((eb >>> pMove.dest & 1) == 1) { //enemy bishop captured
+            long oDest = eb;
+            eb = eb - (1L << (pMove.dest));
+        } if ((er >>> pMove.dest & 1) == 1) { //enemy rook captured
+            long oDest = er;
+            er = er - (1L << (pMove.dest));
+        } if ((eq >>> pMove.dest & 1) == 1) { //enemy queen captured
+            long oDest = eq;
+            eq = eq - (1L << (pMove.dest));
+        }
+
+        //update occupancy bitboards from new piece bitboards
+        long origTPs = turnPieces;
+        long origEnemy = enemyPieces;
+        long origEmpty = empty;
+        long origOcc = occupied;
+        turnPieces = tp | tn | tb | tr | tq;
+        enemyPieces = ep | en | eb | er | eq;
+        occupied = turnPieces | enemyPieces | tk | ek;
+        empty = ~occupied;
+
+        //check if turn king still in check
+        if (squareInCheck(Long.numberOfTrailingZeros(tk), ep, en, eb, er, eq, ek, turn)) {
+            turnPieces = origTPs;
+            enemyPieces = origEnemy;
+            empty = origEmpty;
+            occupied = origOcc;
+            return false;
+        }
+        turnPieces = origTPs;
+        enemyPieces = origEnemy;
+        empty = origEmpty;
+        occupied = origOcc;
+        return true; // if no checks found, return true
     }
 
     public ArrayList<move> generatePseudoLegal(long tp, long tn, long tb, long tr, long tq, long tk, int lastPawnJump,
@@ -110,34 +260,33 @@ public class moveGen {
 
     }
 
-
     public long rankFileSliding(int pos) {  //horizontal and vertical sliding
         long slider = 0x1L << pos;
-        long rankOccupancy = RANKS[pos / 8] & occupied; //horizontal piece slide
+        long rankOccupancy = RANK_MASKS[pos / 8] & occupied; //horizontal piece slide
         long posRankAttacks = (rankOccupancy ^ (rankOccupancy - 2 * slider)) & (enemyPieces | empty)
-                & RANKS[pos / 8]; //positive rank
+                & RANK_MASKS[pos / 8]; //positive rank
         long negRankAttacks = (rankOccupancy ^ Long.reverse(Long.reverse(rankOccupancy) - 2 * Long.reverse(slider))) &
-                (enemyPieces | empty) & RANKS[pos / 8]; //negative rank
-        long fileOccupancy = FILES[pos % 8] & occupied; //check file
-        long posFileAttacks = (fileOccupancy ^ (fileOccupancy - 2 * slider)) & (enemyPieces | empty) & FILES[pos % 8];
+                (enemyPieces | empty) & RANK_MASKS[pos / 8]; //negative rank
+        long fileOccupancy = FILE_MASKS[pos % 8] & occupied; //check file
+        long posFileAttacks = (fileOccupancy ^ (fileOccupancy - 2 * slider)) & (enemyPieces | empty) & FILE_MASKS[pos % 8];
         //pos file
         long negFileAttacks = (fileOccupancy ^ Long.reverse(Long.reverse(fileOccupancy) - 2 * Long.reverse(slider))) &
-                (enemyPieces | empty) & FILES[pos % 8]; //neg file
+                (enemyPieces | empty) & FILE_MASKS[pos % 8]; //neg file
         return (posRankAttacks | negRankAttacks | posFileAttacks | negFileAttacks);
     }
 
     public long diagSliding(int pos) {
         long slider = 0x1L << pos;
-        long diag_occ = occupied & TR_BL_DIAGS[(pos / 8) + (pos % 8)]; //first check top right bottom left diag
+        long diag_occ = occupied & TR_BL_DIAG_MASKS[(pos / 8) + (pos % 8)]; //first check top right bottom left diag
         long posAttacks_TRBL = (diag_occ ^ (diag_occ - 2 * slider)) & (enemyPieces | empty) &
-                (TR_BL_DIAGS[(pos / 8) + (pos % 8)]);
+                (TR_BL_DIAG_MASKS[(pos / 8) + (pos % 8)]);
         long negAttacks_TRBL = (diag_occ ^ Long.reverse((Long.reverse(diag_occ) - 2 * Long.reverse(slider)))) &
-                (enemyPieces | empty) & TR_BL_DIAGS[(pos / 8) + (pos % 8)];
-        diag_occ = occupied & TL_BR_DIAGS[(pos / 8) + 7 - (pos % 8)]; //check top left bot right diag
+                (enemyPieces | empty) & TR_BL_DIAG_MASKS[(pos / 8) + (pos % 8)];
+        diag_occ = occupied & TL_BR_DIAG_MASKS[(pos / 8) + 7 - (pos % 8)]; //check top left bot right diag
         long posAttacks_TLBR = (diag_occ ^ (diag_occ - 2 * slider)) & (enemyPieces | empty) &
-                TL_BR_DIAGS[(pos / 8) + 7 - (pos % 8)];
+                TL_BR_DIAG_MASKS[(pos / 8) + 7 - (pos % 8)];
         long negAttacks_TLBR = (diag_occ ^ Long.reverse((Long.reverse(diag_occ) - 2 * Long.reverse(slider)))) &
-                (enemyPieces | empty) & TL_BR_DIAGS[(pos / 8) + 7 - (pos % 8)];
+                (enemyPieces | empty) & TL_BR_DIAG_MASKS[(pos / 8) + 7 - (pos % 8)];
         return (posAttacks_TRBL | negAttacks_TRBL | posAttacks_TLBR | negAttacks_TLBR);
     }
 

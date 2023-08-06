@@ -197,7 +197,6 @@ public class bitboard {
         System.out.println("turn: " + btb.turn);
         System.out.println("wkpos: " + btb.wkPos + " bkpos: " + btb.bkPos);*/
         moveGen moves = new moveGen();
-        makeMove mover = new makeMove();
         moves.setSquareStatus(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk,
                 btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, side);
 
@@ -229,9 +228,10 @@ public class bitboard {
             if (i % 12 == 0) {System.out.println(); }
         }
         System.out.println();
-        HashMap<Long, Long> newBoards = mover.bitboardChange(allPseudo.get(0), btb.wp, btb.wn, btb.wb, btb.wr, btb.wq,
+        moves.checkLegality(allPseudo.get(0), btb.wp, btb.wn, btb.wb, btb.wr, btb.wq,
                 btb.wk, btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, btb.turn);
-        System.out.println(newBoards);
+        System.out.println(btb.wp);
+        System.out.println();
 
 
 
