@@ -64,7 +64,7 @@ public class moveGen {
         pseudoBishop(tb, pseudoMoves);
         pseudoRook(tr, pseudoMoves);
         pseudoQueen(tq, pseudoMoves);
-        pseudoKing(tk, tr, turnCastle, turn, pseudoMoves);
+        pseudoKing(tk, turnCastle, pseudoMoves);
 
         return pseudoMoves;
         //generates pseudo legal moves and stores to legalMoves
@@ -435,8 +435,7 @@ public class moveGen {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public void pseudoKing(long turnKingBits, long turnRooks, long turnCastling, int turn,
-                                      ArrayList<move> pseudoMoves) {
+    public void pseudoKing(long turnKingBits, long turnCastling, ArrayList<move> pseudoMoves) {
         int kingPos = Long.numberOfTrailingZeros(turnKingBits);
         long attackGen = kingAttackGen(kingPos);
 
