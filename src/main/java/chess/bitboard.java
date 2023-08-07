@@ -1,5 +1,6 @@
 package chess;
 import java.util.*;
+import static java.util.Map.entry;
 @SuppressWarnings("SpellCheckingInspection")
 public class bitboard {
     public long wp = 0L, wn = 0L, wb = 0L, wr = 0L, wq = 0L, wk = 0L,
@@ -9,15 +10,15 @@ public class bitboard {
     public List<Long> wpList = new ArrayList<>(), wnList = new ArrayList<>(), wbList = new ArrayList<>(),
             wrList = new ArrayList<>(), wqList = new ArrayList<>(), wkList = new ArrayList<>(),
             bpList = new ArrayList<>(), bnList = new ArrayList<>(), bbList = new ArrayList<>(),
-            brList = new ArrayList<>(), bqList = new ArrayList<>(), bkList = new ArrayList<>(),
-            wCastleList = new ArrayList<>(), bCastleList = new ArrayList<>();
+            brList = new ArrayList<>(), bqList = new ArrayList<>(), bkList = new ArrayList<>();
+    public List<Integer> wCastleList = new ArrayList<>(), bCastleList = new ArrayList<>();
 
     //storing move information in bitboards. ply count = length of any list.
     public List<Integer> pawnJumpList = new ArrayList<>(), pawnJumpPlyList = new ArrayList<>(),
             moveCount50List = new ArrayList<>(), turnList = new ArrayList<>(), plyCtList = new ArrayList<>();
 
     public int turn = 1;
-    public long wCastle = 0L, bCastle = 0L; //2 bits each, left bit is queenside, right bit is kingside
+    public int wCastle = 0, bCastle = 0; //2 bits each, left bit is queenside, right bit is kingside
     public int lastPawnJump = -1; //if e2-e4, lastPawnJump = e3. if e7 e5, lastPawnJump == e6
     public int pawnJumpPly = -1;  //if pawnJumpPly == plyCount + 2; lastPawnJump == -1
     public int plyCount_50Move = 0; //draw when == 100
@@ -31,10 +32,11 @@ public class bitboard {
     public bitboard() { //default set to startpos FEN
         setBitboards("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
         turn = 1;
-        wCastle = 0B11L;
-        bCastle = 0B11L;
+        wCastle = 0B11;
+        bCastle = 0B11;
         lastPawnJump = -1;
         pawnJumpPly = -1;
+        notateLists();
     }
     public bitboard(String FEN) {  //given a specific FEN
         String[] split = FEN.split("\\s+");
@@ -42,10 +44,10 @@ public class bitboard {
         if (Objects.equals(split[1].toLowerCase(), "w")) {turn = 1;} //set turn
         if (Objects.equals(split[1].toLowerCase(), "b")) {turn = -1;}
 
-        if (split[2].contains("K")) {wCastle = wCastle + 0B1L;} //set castling rights
-        if (split[2].contains("Q")) {wCastle = wCastle + 0B10L;}
-        if (split[2].contains("k")) {bCastle = bCastle + 0B1L;}
-        if (split[2].contains("q")) {bCastle = bCastle + 0B10L;}
+        if (split[2].contains("K")) {wCastle = wCastle + 0B1;} //set castling rights
+        if (split[2].contains("Q")) {wCastle = wCastle + 0B10;}
+        if (split[2].contains("k")) {bCastle = bCastle + 0B1;}
+        if (split[2].contains("q")) {bCastle = bCastle + 0B10;}
         checkCastlingRights();
 
         Hashtable<String, Integer> fileToInt = new Hashtable<>();
@@ -65,20 +67,20 @@ public class bitboard {
         plyCount_50Move = Character.getNumericValue(split[4].charAt(0)); //set plyCount
         plyCount = (Character.getNumericValue(split[5].charAt(0)) - 1) * 2;
         if (turn == -1) { plyCount = plyCount + 1;}
-
+        notateLists();
     }
 
     public void checkCastlingRights() { //checking validity of input FEN castling rights
         if ((wk>>>3 & 1L) != 1) {
-            wCastle = 0L;
+            wCastle = 0;
         } else {
-            if ((wr & 1L) != 1) { wCastle = wCastle & 0b10L; } //if rook not at h1, king cannot castle kingside
-            if ((wr>>>7 & 1L) != 1) { wCastle = wCastle & 0b01L; }} //if rook not at h1, king cannot castle kingside
+            if ((wr & 1L) != 1) { wCastle = wCastle & 0b10; } //if rook not at h1, king cannot castle kingside
+            if ((wr>>>7 & 1L) != 1) { wCastle = wCastle & 0b01; }} //if rook not at h1, king cannot castle kingside
         if ((bk>>>59 & 1L) != 1) {
-            bCastle = 0L;
+            bCastle = 0;
         } else {
-            if ((br>>>56 & 1L) != 1) { bCastle = bCastle & 0b10L; } //if rook not at h1, king cannot castle kingside
-            if ((wr>>>63 & 1L) != 1) { bCastle = bCastle & 0b01L; }} //if rook not at h1, king cannot castle kingside
+            if ((br>>>56 & 1L) != 1) { bCastle = bCastle & 0b10; } //if rook not at h1, king cannot castle kingside
+            if ((wr>>>63 & 1L) != 1) { bCastle = bCastle & 0b01; }} //if rook not at h1, king cannot castle kingside
     }
 
     public void notateLists() {
@@ -184,7 +186,23 @@ public class bitboard {
         turn = turn * -1;
     }
 
+    public void unmakeMove1Ply() { //half move (1ply) unmake
+        if (plyCtList.size() > 1) {
+            int i = plyCtList.size() - 1;
+            wp = wpList.remove(i); wn = wnList.remove(i); wb = wbList.remove(i); wr = wrList.remove(i); wq = wpList.remove(i);
+            wk = wkList.remove(i);
+            bp = bpList.remove(i); bn = bnList.remove(i); bb = wbList.remove(i); br = wrList.remove(i); bq = wpList.remove(i);
+            bk = bkList.remove(i);
+            wCastle = wCastleList.remove(i); bCastle = bCastleList.remove(i);
+            lastPawnJump = pawnJumpList.remove(i); pawnJumpPly = pawnJumpPlyList.remove(i);
+            plyCount_50Move = moveCount50List.remove(i); turn = turnList.remove(i); plyCount = plyCtList.remove(i);
+        }
+    }
 
+    public void unmakeMove2Ply() { //full move (2ply) unmake
+        if (plyCtList.size() > 2) { unmakeMove1Ply(); unmakeMove1Ply();}
+        else if (plyCtList.size() > 1) { unmakeMove1Ply();}
+    }
 
     public void printArrayBoard() {
         setBoardArray();
@@ -300,7 +318,7 @@ public class bitboard {
     }
 
     public static void main(String[] args) {
-        String startPos = "rnbqkbnr/ppppppPp/8/8/8/8/8/RNBQKBNR w KQkq - 0 1";
+        /*String startPos = "rnbqkbnr/ppppppPp/8/8/8/8/8/RNBQKBNR w KQkq - 0 1";
         int side = 1;
         bitboard btb = new bitboard(startPos);
         btb.printArrayBoard();
@@ -318,7 +336,7 @@ public class bitboard {
             j++;
             if (j % 10 == 0) { System.out.println();}
         }
-        System.out.println();
+        System.out.println();*/
 
 
 

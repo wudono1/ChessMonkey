@@ -56,7 +56,7 @@ public class moveGen {
                     0x804020100000000L, 0x402010000000000L, 0x201000000000000L, 0x100000000000000L};
 
     public ArrayList<move> generatePseudoLegal(long tp, long tn, long tb, long tr, long tq, long tk, int lastPawnJump,
-                                               long turnCastle, int turn) {
+                                               int turnCastle, int turn) {
         ArrayList<move> pseudoMoves = new ArrayList<>();
         if (turn == 1) { pseudoWhitePawn(tp, lastPawnJump, pseudoMoves);}
         if (turn == -1) { pseudoBlackPawn(tp, lastPawnJump, pseudoMoves); }
@@ -70,7 +70,7 @@ public class moveGen {
         //generates pseudo legal moves and stores to legalMoves
     }
     public ArrayList<move> moveGenerator(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn, long bb,
-                                   long br, long bq, long bk, int turn, long wCastle, long bCastle, int lastPawnJump) {
+                                   long br, long bq, long bk, int turn, int wCastle, int bCastle, int lastPawnJump) {
         setSquareStatus(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn);
         ArrayList<move> legalMoves = new ArrayList<>();
         if (turn == 1) { //if white to move
@@ -434,7 +434,7 @@ public class moveGen {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public void pseudoKing(long turnKingBits, long turnCastling, ArrayList<move> pseudoMoves) {
+    public void pseudoKing(long turnKingBits, int turnCastling, ArrayList<move> pseudoMoves) {
         int kingPos = Long.numberOfTrailingZeros(turnKingBits);
         long attackGen = kingAttackGen(kingPos);
 
