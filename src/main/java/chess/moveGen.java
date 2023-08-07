@@ -20,8 +20,6 @@ public class moveGen {
     static long turnPieces; //All pieces of current side to play except king
     static long enemyPieces; //All pieces of enemy side except king
     static long empty; //All empty squares
-    static long turnKing;
-    static long enemyKing;
     static long occupied;
 
     //FILES
@@ -107,30 +105,26 @@ public class moveGen {
         if (turn == 1) {
             turnPieces = wp | wn | wb | wr | wq;
             enemyPieces = bp | bn | bb | br | bq;
-            turnKing = wk;
-            enemyKing = bk;
-        }
-        if (turn == -1) {
+        } if (turn == -1) {
             enemyPieces = wp | wn | wb | wr | wq;
             turnPieces = bp | bn | bb | br | bq;
-            turnKing = bk;
-            enemyKing = wk;
         }
-        empty = (~turnPieces) & (~enemyPieces) & (~wk) & (~bk);
-        occupied = ~empty;
+        occupied = turnPieces | enemyPieces | wk | bk;
+        empty = ~occupied;
     }
 
     public Boolean squareInCheck(int sq, long ep, long en, long eb, long er, long eq, long ek, int turn) {
         //checks if square is in check. Used for seeing if king in check, but also for castling purposes
-        if (turn == 1) {
-            if (((ep >>> (sq + 7) & 1) == 1) || ((ep >>> (sq + 9) & 1) == 1)) {
-                return true; }} //if pawn checks, return true
-        if (turn == -1) {
-            if (((ep >>> (sq - 7) & 1) == 1) || ((ep >>> (sq - 9) & 1) == 1)) {
-                return true; }} //if pawn checks, return true
+        if (turn == 1) { //if pawn checks, return true
+            if (((NOT_H >>> sq & 1) == 1) && ((ep >>> (sq + 7) & 1) == 1)) { return true; } //right pawn check
+            if (((NOT_A >>> sq & 1) == 1) && ((ep >>> (sq + 9) & 1) == 1)) { return true; } //left pawn check
+        } if (turn == -1) {
+            if (((NOT_A >>> sq & 1) == 1) && ((ep >>> (sq - 7) & 1) == 1)) { return true; } //left pawn check
+            if (((NOT_H >>> sq & 1) == 1) && ((ep >>> (sq - 9) & 1) == 1)) { return true; } //right pawn check
+        }
         long findKnightChecks = knightAttackGen(sq);
         if ((en & findKnightChecks) != 0) { return true;}
-        // if rook or queen (horizontal or vertical) check found, return false
+        // if enemy knight is checking return true
 
         //check if enemy king is attacking sq
         long enemyKingChecks = kingAttackGen(sq);
@@ -285,7 +279,7 @@ public class moveGen {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public ArrayList<move> pseudoWhitePawn(long wp, int lastPawnJump, ArrayList<move> pseudoMoves) {
+    public void pseudoWhitePawn(long wp, int lastPawnJump, ArrayList<move> pseudoMoves) {
         long pawnCaptureRight = wp & ~H_FILE & enemyPieces>>>7; //bitwise right shift 7 for right pawn captures
         long pawnCaptureLeft = wp & ~A_FILE & enemyPieces>>>9; //bitwise right shift 9 for left pawn capture
 
@@ -314,12 +308,10 @@ public class moveGen {
                     }
                 }
             }
-
         }
-        return pseudoMoves; //return values only used for testing purposes, may delete later
     }
 
-    public ArrayList<move> pseudoBlackPawn(long bp, int lastPawnJump, ArrayList<move> pseudoMoves) {
+    public void pseudoBlackPawn(long bp, int lastPawnJump, ArrayList<move> pseudoMoves) {
         long pawnCaptureLeft = bp & ~A_FILE & enemyPieces<<7; //bitwise left shift 7 for left pawn captures
         long pawnCaptureRight = bp & ~H_FILE & enemyPieces<<9; //bitwise left shift 9 for right pawn capture
         for (int i = Long.numberOfTrailingZeros(bp); i < 64 - Long.numberOfLeadingZeros(bp); i++) {
@@ -346,9 +338,7 @@ public class moveGen {
                     }
                 }
             }
-
         }
-        return pseudoMoves;
     }
 
     public long knightAttackGen(int i) {
@@ -378,15 +368,14 @@ public class moveGen {
                 }}}
     }
 
-    public ArrayList<move> allPseudoKnight(long turnKnight, ArrayList<move> pseudoMoves) {
+    public void allPseudoKnight(long turnKnight, ArrayList<move> pseudoMoves) {
         for (int i = Long.numberOfTrailingZeros(turnKnight); i < 64 - Long.numberOfLeadingZeros(turnKnight); i++) {
             if ((turnKnight >>> i & 1) == 1) {
                 pseudoKnightAtPos(i, knightAttackGen(i), pseudoMoves);}
         }
-        return pseudoMoves;
     }
 
-    public ArrayList<move> pseudoBishop(long turnBishop, ArrayList<move> pseudoMoves) {
+    public void pseudoBishop(long turnBishop, ArrayList<move> pseudoMoves) {
         for (int i = Long.numberOfTrailingZeros(turnBishop); i < 64 - Long.numberOfLeadingZeros(turnBishop); i++) {
             if ((turnBishop >>> i & 1) == 1) { //if queen at square
                 long validPseudo = diagSliding(i);
@@ -396,10 +385,9 @@ public class moveGen {
                 //add all attack squares to ArrayList pseudoMoves
             }
         }
-        return pseudoMoves;
     }
 
-    public ArrayList<move> pseudoRook(long turnRook, ArrayList<move> pseudoMoves) {
+    public void pseudoRook(long turnRook, ArrayList<move> pseudoMoves) {
         for (int i = Long.numberOfTrailingZeros(turnRook); i < 64 - Long.numberOfLeadingZeros(turnRook); i++) {
             if ((turnRook >>> i & 1) == 1) { //if queen at square
                 long validPseudo = rankFileSliding(i);
@@ -409,11 +397,10 @@ public class moveGen {
                 //add all attack squares to ArrayList pseudoMoves
             }
         }
-        return pseudoMoves;
     }
 
 
-    public ArrayList<move> pseudoQueen(long turnQueen, ArrayList<move> pseudoMoves) {
+    public void pseudoQueen(long turnQueen, ArrayList<move> pseudoMoves) {
         for (int i = Long.numberOfTrailingZeros(turnQueen); i < 64 - Long.numberOfLeadingZeros(turnQueen); i++) {
             if ((turnQueen >>> i & 1) == 1) { //if queen at square
                 long validPseudo = rankFileSliding(i) | diagSliding(i);
@@ -423,7 +410,6 @@ public class moveGen {
                 //add all attack squares to ArrayList pseudoMoves
             }
         }
-        return pseudoMoves;
     }
 
     public long kingAttackGen(int i) {
@@ -449,7 +435,7 @@ public class moveGen {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public ArrayList<move> pseudoKing(long turnKingBits, long turnRooks, long turnCastling, int turn,
+    public void pseudoKing(long turnKingBits, long turnRooks, long turnCastling, int turn,
                                       ArrayList<move> pseudoMoves) {
         int kingPos = Long.numberOfTrailingZeros(turnKingBits);
         long attackGen = kingAttackGen(kingPos);
@@ -459,13 +445,6 @@ public class moveGen {
                 if ((empty >>> sq & 1) == 1 | (enemyPieces >>> sq & 1) == 1) {
                     pseudoMoves.add(new move(kingPos, sq, 0, 0)); }}}
 
-        if (turn == 1 && kingPos != 3) {turnCastling = 0;}
-        if (turn == -1 && kingPos != 59) {turnCastling = 0;}
-        if ((turnCastling & 1) == 1) { //check if kside castling valid
-            if ((turnRooks>>>(kingPos - 3) & 1) != 1) { turnCastling = (turnCastling - 1);}
-        } if ((turnCastling >>> 1 & 1) == 1) { //check if qside turn castling valid
-            if ((turnRooks>>>(kingPos + 4) & 1) != 1) { turnCastling = (turnCastling - 2);}
-        }
         if (turnCastling != 0) { //for castling moves
             if ((turnCastling & 1) == 1) { //kingside castling
                 if ((empty >>> (kingPos - 1) & empty >>> (kingPos - 2) & 1) == 1) {
@@ -475,7 +454,6 @@ public class moveGen {
                     pseudoMoves.add(new move(kingPos, kingPos + 2, 1, 0));}
             }
         }
-        return pseudoMoves;
     }
 
     public static void main(String[] args) {

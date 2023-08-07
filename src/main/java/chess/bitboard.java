@@ -6,10 +6,8 @@ public class bitboard {
             bp = 0L, bn = 0L, bb = 0L, br = 0L, bq = 0L, bk = 0L;
     public int turn;
     public long wCastle = 0L, bCastle = 0L; //2 bits each, left bit is queenside, right bit is kingside
-
     public int lastPawnJump = -1; //if e2-e4, lastPawnJump = e3. if e7 e5, lastPawnJump == e6
     public int pawnJumpPly = -1;  //if pawnJumpPly == plyCount + 2; lastPawnJump == -1
-
     public int plyCount_50Move = 0; //draw when == 100
     public int plyCount = 0; //2ply = 1 full move
 
