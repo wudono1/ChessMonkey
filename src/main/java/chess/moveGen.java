@@ -80,35 +80,56 @@ public class moveGen {
 
     public ArrayList<move> moveGenerator(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn, long bb,
                                    long br, long bq, long bk, int turn, long wCastle, long bCastle, int lastPawnJump) {
-        int turnKingPos = 0;
         setSquareStatus(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn);
         ArrayList<move> legalMoves = new ArrayList<>();
+        System.out.println(wp);
         if (turn == 1) { //if white to move
             legalMoves = generatePseudoLegal(wp, wn, wb, wr, wq, wk, lastPawnJump, wCastle, turn);
+            int k = 0;
+            for (move pMove : legalMoves) {
+                System.out.print("[ " + pMove.start + ", " + pMove.dest + "], ");
+                k++;
+                if (k % 10 == 0) { System.out.println();}
+            }
+            System.out.println();
+
             int i = 0;
             int lstSize = legalMoves.size();
             while (i < lstSize) {
-                if (checkLegality(legalMoves.get(i), wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn)) {
-                    i++;
-                } else {
+                if (checkLegality(legalMoves.get(i), wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn)) {i++;}
+                else {
                     legalMoves.remove(i);
-                    lstSize = legalMoves.size();
-                }
+                    lstSize = legalMoves.size();}
             }
         } if (turn == -1) { //if black to move
             legalMoves = generatePseudoLegal(bp, bn, bb, br, bq, bk, lastPawnJump, bCastle, turn);
+
+            int k = 0;
+            for (move pMove : legalMoves) {
+                System.out.print("[ " + pMove.start + ", " + pMove.dest + "], ");
+                k++;
+                if (k % 10 == 0) { System.out.println();}
+            }
+            System.out.println();
             int i = 0;
             int lstSize = legalMoves.size();
             while (i < lstSize) {
-                if (checkLegality(legalMoves.get(i), bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk, turn)) {
-                    i++;
-                } else {
+                if (checkLegality(legalMoves.get(i), bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk, turn)) {i++;}
+                else {
                     legalMoves.remove(i);
-                    lstSize = legalMoves.size();
-                }
+                    lstSize = legalMoves.size();}
             }
         }
         //legalMoves initially contains all legal and pseudolegal, then trimmed down to legal
+        int j = 0;
+        System.out.println(wp);
+        for (move pMove : legalMoves) {
+            System.out.print("[ " + pMove.start + ", " + pMove.dest + "], ");
+            j++;
+            if (j % 10 == 0) { System.out.println();}
+        }
+        System.out.println();
+
         return legalMoves;
     }
 
@@ -440,18 +461,18 @@ public class moveGen {
         long kingPos = 0B1L << i;
         long attackGen = 0L;
         //generate bitboard for specific position
-        if ((kingPos & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1 << (i - 8)); } //move down vertically
-        if ((kingPos & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1 << (i + 8)); } //move up vertically
-        if ((kingPos & (~FILE_MASKS[0])) != 0) {attackGen = attackGen + (1 << (i - 1)); } //move right horizontal
-        if ((kingPos & (~FILE_MASKS[7])) != 0) {attackGen = attackGen + (1 << (i + 1)); } //move right horizontal
+        if ((kingPos & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1L << (i - 8)); } //move down vertically
+        if ((kingPos & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1L << (i + 8)); } //move up vertically
+        if ((kingPos & (~FILE_MASKS[0])) != 0) {attackGen = attackGen + (1L << (i - 1)); } //move right horizontal
+        if ((kingPos & (~FILE_MASKS[7])) != 0) {attackGen = attackGen + (1L << (i + 1)); } //move right horizontal
         //bottom left diag
-        if ((kingPos & (~FILE_MASKS[7]) & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1<<(i - 7)); }
+        if ((kingPos & (~FILE_MASKS[7]) & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1L<<(i - 7)); }
         //bottom right diag
-        if ((kingPos & (~FILE_MASKS[0]) & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1<<(i - 9)); }
+        if ((kingPos & (~FILE_MASKS[0]) & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1L<<(i - 9)); }
         //top left diag
-        if ((kingPos & (~FILE_MASKS[7]) & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1<<(i + 9)); }
+        if ((kingPos & (~FILE_MASKS[7]) & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1L<<(i + 9)); }
         //top right diag
-        if ((kingPos & (~FILE_MASKS[0]) & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1<<(i + 7)); }
+        if ((kingPos & (~FILE_MASKS[0]) & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1L<<(i + 7)); }
 
         return attackGen;
     }

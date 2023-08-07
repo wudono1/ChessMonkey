@@ -6,7 +6,6 @@ public class bitboard {
             bp = 0L, bn = 0L, bb = 0L, br = 0L, bq = 0L, bk = 0L;
     public int turn;
     public long wCastle = 0L, bCastle = 0L; //2 bits each, left bit is queenside, right bit is kingside
-    public int lastPawnMove;
 
     public int lastPawnJump = -1;
     public int movesSinceLastPawn = -1;
@@ -193,38 +192,10 @@ public class bitboard {
         moves.setSquareStatus(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk,
                 btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, side);
 
-        ArrayList<move> pm = new ArrayList<>();
-        /*ArrayList<move> pawnMoves = new ArrayList<move>();
-        pawnMoves = moves.pseudoWhitePawn(btb.wp, btb.lastPawnJump, pm);
-        int i = 1;
-        for (move pMove : pawnMoves) {
-            System.out.println(i + ": [" + pMove.start + ", " + pMove.dest + "]");
-            i++;
-        }
-
-
-        ArrayList<move> knightMoves = moves.allPseudoKnight(btb.wn, pm);
-        for (move nMove : knightMoves) {
-            System.out.println("[" + nMove.start + ", " + nMove.dest + "]");
-
-
-        }*/
-        int lpj = 43;
-        ArrayList<move> allPseudo = moves.generatePseudoLegal(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk,
-                                                              btb.lastPawnJump, btb.wCastle, btb.turn);
-        int i = 1;
-        for (move nMove : allPseudo) {
-            System.out.print("[" + nMove.start + ", " + nMove.dest + " ");
-            if (nMove.promo != 0) {System.out.print(", " + nMove.promo); }
-            System.out.print("], ");
-            i++;
-            if (i % 12 == 0) {System.out.println(); }
-        }
         System.out.println();
 
-        System.out.println(moves.checkLegality(allPseudo.get(0), btb.wp, btb.wn, btb.wb, btb.wr, btb.wq,
-                btb.wk, btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, btb.turn));
-        System.out.println();
+        ArrayList<move> legalMoves = moves.moveGenerator(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.bp, btb.bn,
+                btb.bb, btb.br, btb.bq, btb.bk, btb.turn, btb.wCastle, btb.bCastle, btb.lastPawnJump);
 
 
 
