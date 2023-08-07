@@ -1,3 +1,6 @@
 # ChessMonkey
 Java chess engine\
-Features: bitboard representation
+Features:\
+bitboard representation\
+move generation testing using perft function\
+negamax search algorithm
