@@ -183,6 +183,7 @@ public class bitboard {
             if ((wp >>> turnMove.dest & 1) == 1) {wp = wp & ~(1L << (turnMove.dest)); } //enemy queen captured
         }
         checkCastlingRights();
+        setBoardArray();
         turn = turn * -1;
     }
 
