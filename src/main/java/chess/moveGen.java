@@ -57,6 +57,49 @@ public class moveGen {
                     0x8040201008040201L, 0x4020100804020100L, 0x2010080402010000L, 0x1008040201000000L,
                     0x804020100000000L, 0x402010000000000L, 0x201000000000000L, 0x100000000000000L};
 
+    public ArrayList<move> generatePseudoLegal(long tp, long tn, long tb, long tr, long tq, long tk, int lastPawnJump,
+                                               long turnCastle, int turn) {
+        ArrayList<move> pseudoMoves = new ArrayList<>();
+        if (turn == 1) { pseudoWhitePawn(tp, lastPawnJump, pseudoMoves);}
+        if (turn == -1) { pseudoBlackPawn(tp, lastPawnJump, pseudoMoves); }
+        allPseudoKnight(tn, pseudoMoves);
+        pseudoBishop(tb, pseudoMoves);
+        pseudoRook(tr, pseudoMoves);
+        pseudoQueen(tq, pseudoMoves);
+        pseudoKing(tk, tr, turnCastle, turn, pseudoMoves);
+
+        return pseudoMoves;
+        //generates pseudo legal moves and stores to legalMoves
+    }
+    public ArrayList<move> moveGenerator(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn, long bb,
+                                   long br, long bq, long bk, int turn, long wCastle, long bCastle, int lastPawnJump) {
+        setSquareStatus(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn);
+        ArrayList<move> legalMoves = new ArrayList<>();
+        if (turn == 1) { //if white to move
+            legalMoves = generatePseudoLegal(wp, wn, wb, wr, wq, wk, lastPawnJump, wCastle, turn);
+            int i = 0;
+            int lstSize = legalMoves.size();
+            while (i < lstSize) {
+                if (checkLegality(legalMoves.get(i), wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn)) {i++;}
+                else {
+                    legalMoves.remove(i);
+                    lstSize = legalMoves.size();}
+            }
+        } if (turn == -1) { //if black to move
+            legalMoves = generatePseudoLegal(bp, bn, bb, br, bq, bk, lastPawnJump, bCastle, turn);
+            int i = 0;
+            int lstSize = legalMoves.size();
+            while (i < lstSize) {
+                if (checkLegality(legalMoves.get(i), bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk, turn)) {i++;}
+                else {
+                    legalMoves.remove(i);
+                    lstSize = legalMoves.size();}
+            }
+        }
+        //legalMoves initially contains all legal and pseudolegal, then trimmed down to legal
+        return legalMoves;
+    }
+
     public void setSquareStatus(long wp, long wn, long wb, long wr, long wq, long wk, long bp,
                                 long bn, long bb, long br, long bq, long bk, int turn) {
         //sets turnPieces, enemyPieces, and empty
@@ -75,62 +118,6 @@ public class moveGen {
         }
         empty = (~turnPieces) & (~enemyPieces) & (~wk) & (~bk);
         occupied = ~empty;
-
-    }
-
-    public ArrayList<move> moveGenerator(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn, long bb,
-                                   long br, long bq, long bk, int turn, long wCastle, long bCastle, int lastPawnJump) {
-        setSquareStatus(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn);
-        ArrayList<move> legalMoves = new ArrayList<>();
-        System.out.println(wp);
-        if (turn == 1) { //if white to move
-            legalMoves = generatePseudoLegal(wp, wn, wb, wr, wq, wk, lastPawnJump, wCastle, turn);
-            int k = 0;
-            for (move pMove : legalMoves) {
-                System.out.print("[ " + pMove.start + ", " + pMove.dest + "], ");
-                k++;
-                if (k % 10 == 0) { System.out.println();}
-            }
-            System.out.println();
-
-            int i = 0;
-            int lstSize = legalMoves.size();
-            while (i < lstSize) {
-                if (checkLegality(legalMoves.get(i), wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn)) {i++;}
-                else {
-                    legalMoves.remove(i);
-                    lstSize = legalMoves.size();}
-            }
-        } if (turn == -1) { //if black to move
-            legalMoves = generatePseudoLegal(bp, bn, bb, br, bq, bk, lastPawnJump, bCastle, turn);
-
-            int k = 0;
-            for (move pMove : legalMoves) {
-                System.out.print("[ " + pMove.start + ", " + pMove.dest + "], ");
-                k++;
-                if (k % 10 == 0) { System.out.println();}
-            }
-            System.out.println();
-            int i = 0;
-            int lstSize = legalMoves.size();
-            while (i < lstSize) {
-                if (checkLegality(legalMoves.get(i), bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk, turn)) {i++;}
-                else {
-                    legalMoves.remove(i);
-                    lstSize = legalMoves.size();}
-            }
-        }
-        //legalMoves initially contains all legal and pseudolegal, then trimmed down to legal
-        int j = 0;
-        System.out.println(wp);
-        for (move pMove : legalMoves) {
-            System.out.print("[ " + pMove.start + ", " + pMove.dest + "], ");
-            j++;
-            if (j % 10 == 0) { System.out.println();}
-        }
-        System.out.println();
-
-        return legalMoves;
     }
 
     public Boolean squareInCheck(int sq, long ep, long en, long eb, long er, long eq, long ek, int turn) {
@@ -254,22 +241,6 @@ public class moveGen {
         empty = origEmpty;
         occupied = origOcc;
         return true; // if no checks found, return true
-    }
-
-    public ArrayList<move> generatePseudoLegal(long tp, long tn, long tb, long tr, long tq, long tk, int lastPawnJump,
-                                               long turnCastle, int turn) {
-        ArrayList<move> pseudoMoves = new ArrayList<>();
-        if (turn == 1) { pseudoWhitePawn(tp, lastPawnJump, pseudoMoves);}
-        if (turn == -1) { pseudoBlackPawn(tp, lastPawnJump, pseudoMoves); }
-        allPseudoKnight(tn, pseudoMoves);
-        pseudoBishop(tb, pseudoMoves);
-        pseudoRook(tr, pseudoMoves);
-        pseudoQueen(tq, pseudoMoves);
-        pseudoKing(tk, tr, turnCastle, turn, pseudoMoves);
-
-        return pseudoMoves;
-        //generates pseudo legal moves and stores to legalMoves
-
     }
 
     public long rankFileSliding(int pos) {  //horizontal and vertical sliding

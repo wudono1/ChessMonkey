@@ -7,12 +7,12 @@ public class bitboard {
     public int turn;
     public long wCastle = 0L, bCastle = 0L; //2 bits each, left bit is queenside, right bit is kingside
 
-    public int lastPawnJump = -1;
-    public int movesSinceLastPawn = -1;
+    public int lastPawnJump = -1; //if e2-e4, lastPawnJump = e3. if e7 e5, lastPawnJump == e6
+    public int pawnJumpPly = -1;  //if pawnJumpPly == plyCount + 2; lastPawnJump == -1
 
-    int plyCount_50Move = 0;
-    public int plyCount = 0;
-    public int wkPos, bkPos;
+    public int plyCount_50Move = 0; //draw when == 100
+    public int plyCount = 0; //2ply = 1 full move
+
     private final String[] arrBoard = new String[64];
     //h1 = arrBoard[0], a8 = arrBoard[63]
 
@@ -20,19 +20,15 @@ public class bitboard {
     @SuppressWarnings("unused")
     public bitboard() { //default set to startpos FEN
         setBitboards("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
-        setKingPos();
-        setBoardArray();
         turn = 1;
         wCastle = 0B11L;
         bCastle = 0B11L;
         lastPawnJump = -1;
-        movesSinceLastPawn = 0;
+        pawnJumpPly = 0;
     }
     public bitboard(String FEN) {  //given a specific FEN
         String[] split = FEN.split("\\s+");
         setBitboards(split[0]);  //set bitboards based on FEN position
-        setKingPos(); //set king position
-        setBoardArray();
         if (Objects.equals(split[1], "w")) {turn = 1;} //set turn
         if (Objects.equals(split[1], "b")) {turn = -1;}
 
@@ -40,6 +36,7 @@ public class bitboard {
         if (split[2].contains("Q")) {wCastle = wCastle + 0B10L;}
         if (split[2].contains("k")) {bCastle = bCastle + 0B1L;}
         if (split[2].contains("q")) {bCastle = bCastle + 0B10L;}
+        checkCastlingRights();
 
         Hashtable<String, Integer> fileToInt = new Hashtable<>();
         fileToInt.put("h", 0);
@@ -61,11 +58,117 @@ public class bitboard {
 
     }
 
-    public String[] getArrayBoard() {
-        return arrBoard;
+    public void checkCastlingRights() { //checking validity of input FEN castling rights
+        if ((wk>>>3 & 1L) != 1) {
+            wCastle = 0L;
+        } else {
+            if ((wr & 1L) != 1) { wCastle = wCastle & 0b10L; } //if rook not at h1, king cannot castle kingside
+            if ((wr>>>7 & 1L) != 1) { wCastle = wCastle & 0b01L; }} //if rook not at h1, king cannot castle kingside
+        if ((bk>>>59 & 1L) != 1) {
+            bCastle = 0L;
+        } else {
+            if ((br>>>56 & 1L) != 1) { bCastle = bCastle & 0b10L; } //if rook not at h1, king cannot castle kingside
+            if ((wr>>>63 & 1L) != 1) { bCastle = bCastle & 0b01L; }} //if rook not at h1, king cannot castle kingside
     }
 
+    @SuppressWarnings("unused")
+    public void makeMove(move turnMove) {//for making move. Assumes input turnMove is valid
+        plyCount++;
+        if (lastPawnJump != -1 & plyCount == pawnJumpPly + 2) {lastPawnJump = -1;}
+        plyCount_50Move++;
+        if (turn == 1) {//white to move
+            if (((bp | bn | bb | br | bq) & 1L<<turnMove.dest) != 0) {plyCount_50Move = 0;}
+            plyCount_50Move = 0;
+            if ((wp >>> turnMove.start & 1) == 1) { //for pawn moves
+                if (turnMove.moveType == 3) { //if promotion
+                    wp = wp & ~(1L << (turnMove.start)); //change turn pawn bitboards
+                    if (turnMove.promo == 2) {wn = wn | (1L << turnMove.dest); } //changing promotion piece bitboards
+                    if (turnMove.promo == 3) {wb = wb | (1L << turnMove.dest); }
+                    if (turnMove.promo == 4) {wr = wr | (1L << turnMove.dest); }
+                    if (turnMove.promo == 5) {wq = wq | (1L << turnMove.dest); }
+                } else {
+                    wp = (wp & ~(1L << (turnMove.start))) | (1L << (turnMove.dest)); // making the pseudomove
+                    if (turnMove.moveType == 2) {bp = bp & ~(1L << (turnMove.dest - 8));}} //if en passant
+                    if (turnMove.dest == turnMove.start + 16) {
+                        lastPawnJump = turnMove.dest - 8;
+                        pawnJumpPly = plyCount;
+                    }
+            }
+            //knight
+            if ((wn >>> turnMove.start & 1) == 1) {wn = (wn & ~(1L << (turnMove.start))) | (1L << (turnMove.dest));}
+            //bishop
+            if ((wb >>> turnMove.start & 1) == 1) {wb = (wb & ~(1L << (turnMove.start))) | (1L << (turnMove.dest));}
+            //rook
+            if ((wr >>> turnMove.start & 1) == 1) {wr = (wr & ~(1L << (turnMove.start))) | (1L << (turnMove.dest));}
+            //queen
+            if ((wq >>> turnMove.start & 1) == 1) {wq = (wq & ~(1L << (turnMove.start))) | (1L << (turnMove.dest));}
+            //king
+            if ((wk >>> turnMove.start & 1) == 1) {
+                wk = (wk & ~(1L << (turnMove.start))) | (1L << (turnMove.dest));
+                if (turnMove.moveType == 1) { //if castling
+                    //kingside castling
+                    if (turnMove.start > turnMove.dest) { wr = (wr & ~(1L << (turnMove.dest - 1))) | (1L << (turnMove.dest + 1)); }
+                    //queenside castling
+                    if (turnMove.start < turnMove.dest) { wr = (wr & ~(1L << (turnMove.dest + 2))) | (1L << (turnMove.dest - 1)); }
+                }
+            }
+            //checking if capture at dest square
+            if ((bp >>> turnMove.dest & 1) == 1) {bp = bp & ~(1L << (turnMove.dest)); } //enemy pawn cature
+            if ((bn >>> turnMove.dest & 1) == 1) {bn = bn & ~(1L << (turnMove.dest)); } //enemy knight capture
+            if ((bb >>> turnMove.dest & 1) == 1) {bb = bb & ~(1L << (turnMove.dest)); } //enemy bishop captured
+            if ((br >>> turnMove.dest & 1) == 1) {br = br & ~(1L << (turnMove.dest)); } //enemy rook captured
+            if ((bq >>> turnMove.dest & 1) == 1) {bq = bq & ~(1L << (turnMove.dest)); } //enemy queen captured
+
+        }if (turn == -1) { //black to move
+            if (((wp | wn | wb | wr | wq) & 1L<<turnMove.dest) != 0) {plyCount_50Move = 0;}
+            if ((bp >>> turnMove.start & 1) == 1) { //for pawn moves
+                plyCount_50Move = 0;
+                if (turnMove.moveType == 3) { //if promotion
+                    bp = bp & ~(1L << (turnMove.start)); //change turn pawn bitboards
+                    if (turnMove.promo == 2) {bn = bn | (1L << turnMove.dest); } //changing promotion piece bitboards
+                    if (turnMove.promo == 3) {bb = bb | (1L << turnMove.dest); }
+                    if (turnMove.promo == 4) {br = br | (1L << turnMove.dest); }
+                    if (turnMove.promo == 5) {bq = bq | (1L << turnMove.dest); }
+                } else {
+                    bp = (bp & ~(1L << (turnMove.start))) | (1L << (turnMove.dest)); // making the pseudomove
+                    if (turnMove.moveType == 2) {wp = wp & ~(1L << (turnMove.dest + 8));}} //if en passant
+                    if (turnMove.dest == turnMove.start - 16) {
+                        lastPawnJump = turnMove.dest + 8;
+                        pawnJumpPly = plyCount;
+                    }
+            }
+            //knight
+            if ((bn >>> turnMove.start & 1) == 1) {bn = (bn & ~(1L << (turnMove.start))) | (1L << (turnMove.dest));}
+            //bishop
+            if ((bb >>> turnMove.start & 1) == 1) {bb = (bb & ~(1L << (turnMove.start))) | (1L << (turnMove.dest));}
+            //rook
+            if ((br >>> turnMove.start & 1) == 1) {br = (br & ~(1L << (turnMove.start))) | (1L << (turnMove.dest));}
+            //queen
+            if ((bq >>> turnMove.start & 1) == 1) {bq = (bq & ~(1L << (turnMove.start))) | (1L << (turnMove.dest));}
+            //king
+            if ((bk >>> turnMove.start & 1) == 1) {
+                bk = (bk & ~(1L << (turnMove.start))) | (1L << (turnMove.dest));
+                if (turnMove.moveType == 1) { //if castling
+                    //kingside castling
+                    if (turnMove.start > turnMove.dest) { br = (br & ~(1L << (turnMove.dest - 1))) | (1L << (turnMove.dest + 1)); }
+                    //queenside castling
+                    if (turnMove.start < turnMove.dest) { br = (br & ~(1L << (turnMove.dest + 2))) | (1L << (turnMove.dest - 1)); }
+                }
+            }
+            //checking if capture at dest square
+            if ((wp >>> turnMove.dest & 1) == 1) {wp = wp & ~(1L << (turnMove.dest)); } //enemy pawn cature
+            if ((wp >>> turnMove.dest & 1) == 1) {wp = wp & ~(1L << (turnMove.dest)); } //enemy knight capture
+            if ((wp >>> turnMove.dest & 1) == 1) {wp = wp & ~(1L << (turnMove.dest)); } //enemy bishop captured
+            if ((wp >>> turnMove.dest & 1) == 1) {wp = wp & ~(1L << (turnMove.dest)); } //enemy rook captured
+            if ((wp >>> turnMove.dest & 1) == 1) {wp = wp & ~(1L << (turnMove.dest)); } //enemy queen captured
+        }
+        checkCastlingRights();
+        turn = turn * -1;
+    }
+
+
     public void printArrayBoard() {
+        setBoardArray();
         for (int i = 7; i > -1; i--) {
             for (int j = 7; j > -1; j--) {
                 if (j == 7) {
@@ -111,17 +214,12 @@ public class bitboard {
         }
     }
 
-    public void setKingPos() {
-        for (int i = 0; i < 64; i++) {
-            if (wk >>> i == 1) { wkPos = i; }
-            if (bk >>> i == 1) { bkPos = i; }
-        }
-    }
 
     public void setBitboards (String FEN){  //FEN is strictly current position for now
         int posCount = -1;
         String zeroes = "000000000000000000000000000000000000000000000000000000000000000"; //length 63 0's
         for (int i = 0; i < FEN.length(); i++) {
+
             if (isInt(FEN.substring(i, i + 1))) {
                 posCount = posCount + Integer.parseInt(FEN.substring(i, i + 1));
             } else if (FEN.charAt(i) != '/') {
@@ -167,8 +265,6 @@ public class bitboard {
         }
 
     }
-
-
     @SuppressWarnings("unused")
     public boolean isInt (String str){
         if (str.isEmpty()) {
@@ -196,6 +292,13 @@ public class bitboard {
 
         ArrayList<move> legalMoves = moves.moveGenerator(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.bp, btb.bn,
                 btb.bb, btb.br, btb.bq, btb.bk, btb.turn, btb.wCastle, btb.bCastle, btb.lastPawnJump);
+        int j = 0;
+        for (move pMove : legalMoves) {
+            System.out.print("[ " + pMove.start + ", " + pMove.dest + "], ");
+            j++;
+            if (j % 10 == 0) { System.out.println();}
+        }
+        System.out.println();
 
 
 
