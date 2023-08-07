@@ -4,7 +4,19 @@ import java.util.*;
 public class bitboard {
     public long wp = 0L, wn = 0L, wb = 0L, wr = 0L, wq = 0L, wk = 0L,
             bp = 0L, bn = 0L, bb = 0L, br = 0L, bq = 0L, bk = 0L;
-    public int turn;
+
+    //storing past bitboards for make and unmake move
+    public List<Long> wpList = new ArrayList<>(), wnList = new ArrayList<>(), wbList = new ArrayList<>(),
+            wrList = new ArrayList<>(), wqList = new ArrayList<>(), wkList = new ArrayList<>(),
+            bpList = new ArrayList<>(), bnList = new ArrayList<>(), bbList = new ArrayList<>(),
+            brList = new ArrayList<>(), bqList = new ArrayList<>(), bkList = new ArrayList<>(),
+            wCastleList = new ArrayList<>(), bCastleList = new ArrayList<>();
+
+    //storing move information in bitboards. ply count = length of any list.
+    public List<Integer> pawnJumpList = new ArrayList<>(), pawnJumpPlyList = new ArrayList<>(),
+            moveCount50List = new ArrayList<>(), turnList = new ArrayList<>(), plyCtList = new ArrayList<>();
+
+    public int turn = 1;
     public long wCastle = 0L, bCastle = 0L; //2 bits each, left bit is queenside, right bit is kingside
     public int lastPawnJump = -1; //if e2-e4, lastPawnJump = e3. if e7 e5, lastPawnJump == e6
     public int pawnJumpPly = -1;  //if pawnJumpPly == plyCount + 2; lastPawnJump == -1
@@ -22,13 +34,13 @@ public class bitboard {
         wCastle = 0B11L;
         bCastle = 0B11L;
         lastPawnJump = -1;
-        pawnJumpPly = 0;
+        pawnJumpPly = -1;
     }
     public bitboard(String FEN) {  //given a specific FEN
         String[] split = FEN.split("\\s+");
         setBitboards(split[0]);  //set bitboards based on FEN position
-        if (Objects.equals(split[1], "w")) {turn = 1;} //set turn
-        if (Objects.equals(split[1], "b")) {turn = -1;}
+        if (Objects.equals(split[1].toLowerCase(), "w")) {turn = 1;} //set turn
+        if (Objects.equals(split[1].toLowerCase(), "b")) {turn = -1;}
 
         if (split[2].contains("K")) {wCastle = wCastle + 0B1L;} //set castling rights
         if (split[2].contains("Q")) {wCastle = wCastle + 0B10L;}
@@ -69,10 +81,18 @@ public class bitboard {
             if ((wr>>>63 & 1L) != 1) { bCastle = bCastle & 0b01L; }} //if rook not at h1, king cannot castle kingside
     }
 
+    public void notateLists() {
+        wpList.add(wp); wnList.add(wn); wbList.add(wb); wrList.add(wr); wqList.add(wq); wkList.add(wk);
+        bpList.add(bp); bnList.add(bn); bbList.add(bb); brList.add(br); bqList.add(bq); bkList.add(bk);
+        wCastleList.add(wCastle); bCastleList.add(bCastle);
+        pawnJumpList.add(lastPawnJump); pawnJumpPlyList.add(pawnJumpPly);
+        moveCount50List.add(plyCount_50Move); plyCtList.add(plyCount); turnList.add(turn);
+    }
+
     @SuppressWarnings("unused")
     public void makeMove(move turnMove) {//for making move. Assumes input turnMove is valid
         plyCount++;
-        if (lastPawnJump != -1 & plyCount == pawnJumpPly + 2) {lastPawnJump = -1;}
+        if (lastPawnJump != -1 & plyCount == pawnJumpPly + 2) {lastPawnJump = -1; pawnJumpPly = -1;}
         plyCount_50Move++;
         if (turn == 1) {//white to move
             if (((bp | bn | bb | br | bq) & 1L<<turnMove.dest) != 0) {plyCount_50Move = 0;}
@@ -165,6 +185,7 @@ public class bitboard {
     }
 
 
+
     public void printArrayBoard() {
         setBoardArray();
         for (int i = 7; i > -1; i--) {
@@ -180,6 +201,7 @@ public class bitboard {
         }
         System.out.println("   a  b  c  d  e  f  g  h");
     }
+
     public void setBoardArray() {
         for (int i = 0; i < 64; i++) {
             if ((wp >>> i & 0B1) == 0B1) {

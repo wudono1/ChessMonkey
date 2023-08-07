@@ -399,7 +399,6 @@ public class moveGen {
         }
     }
 
-
     public void pseudoQueen(long turnQueen, ArrayList<move> pseudoMoves) {
         for (int i = Long.numberOfTrailingZeros(turnQueen); i < 64 - Long.numberOfLeadingZeros(turnQueen); i++) {
             if ((turnQueen >>> i & 1) == 1) { //if queen at square
