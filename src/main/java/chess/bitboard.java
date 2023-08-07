@@ -36,6 +36,7 @@ public class bitboard {
         bCastle = 0B11;
         lastPawnJump = -1;
         pawnJumpPly = -1;
+        setBoardArray();
         notateLists();
     }
     public bitboard(String FEN) {  //given a specific FEN
