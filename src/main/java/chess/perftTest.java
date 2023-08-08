@@ -29,8 +29,8 @@ public class perftTest {
     public static void main(String[] args) {
 
         perftTest pt = new perftTest();
-        int d = 2;
+        int d = 7;
         int numNodes = pt.perft(d);
-        System.out.printf("Total Nodes Searched after 1. Nf3 at depth %d ply: %d%n", d, numNodes);
+        System.out.printf("Total Nodes Searched at depth %d ply: %d%n", d, numNodes);
     }
 }

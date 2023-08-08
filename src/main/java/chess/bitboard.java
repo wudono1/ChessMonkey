@@ -190,13 +190,18 @@ public class bitboard {
     public void unmakeMove1Ply() { //half move (1ply) unmake
         if (plyCtList.size() > 1) {
             int i = plyCtList.size() - 1;
-            wp = wpList.remove(wpList.size() - 1); wn = wnList.remove(i); wb = wbList.remove(i); wr = wrList.remove(i); wq = wqList.remove(i);
-            wk = wkList.remove(i);
-            bp = bpList.remove(i); bn = bnList.remove(i); bb = bbList.remove(i); br = brList.remove(i); bq = bqList.remove(i);
-            bk = bkList.remove(i);
-            wCastle = wCastleList.remove(i); bCastle = bCastleList.remove(i);
-            lastPawnJump = pawnJumpList.remove(i); pawnJumpPly = pawnJumpPlyList.remove(i);
-            plyCount_50Move = moveCount50List.remove(i); turn = turnList.remove(i); plyCount = plyCtList.remove(i);
+            //remove last move from notation lists
+            wpList.remove(i); wnList.remove(i); wbList.remove(i); wrList.remove(i); wqList.remove(i); wkList.remove(i);
+            bpList.remove(i); bnList.remove(i); bbList.remove(i); brList.remove(i); bqList.remove(i); bkList.remove(i);
+            wCastleList.remove(i); bCastleList.remove(i); pawnJumpList.remove(i); pawnJumpPlyList.remove(i);
+            moveCount50List.remove(i); turnList.remove(i); plyCtList.remove(i);
+            wp = wpList.get(i-1); wn = wnList.get(i-1); wb = wbList.get(i-1); wr = wrList.get(i-1); wq = wqList.get(i-1);
+            wk = wkList.get(i-1);
+            bp = bpList.get(i-1); bn = bnList.get(i-1); bb = bbList.get(i-1); br = brList.get(i-1); bq = bqList.get(i-1);
+            bk = bkList.get(i-1);
+            wCastle = wCastleList.get(i-1); bCastle = bCastleList.get(i-1);
+            lastPawnJump = pawnJumpList.get(i-1); pawnJumpPly = pawnJumpPlyList.get(i-1);
+            plyCount_50Move = moveCount50List.get(i-1); turn = turnList.get(i-1); plyCount = plyCtList.get(i-1);
         }
     }
 
