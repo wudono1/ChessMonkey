@@ -319,7 +319,8 @@ public class bitboard {
     }
 
     public static void main(String[] args) {
-        /*String startPos = "rnbqkbnr/ppppppPp/8/8/8/8/8/RNBQKBNR w KQkq - 0 1";
+        String startPos = "rnbqkbnr/pppppppp/8/8/7P/8/PPPPPPP1/RNBQKBNR b KQkq - 0 1";
+
         int side = 1;
         bitboard btb = new bitboard(startPos);
         btb.printArrayBoard();
@@ -337,7 +338,7 @@ public class bitboard {
             j++;
             if (j % 10 == 0) { System.out.println();}
         }
-        System.out.println();*/
+        System.out.println();
 
 
 

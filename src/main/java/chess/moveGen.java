@@ -267,7 +267,7 @@ public class moveGen {
         return (posAttacks_TRBL | negAttacks_TRBL | posAttacks_TLBR | negAttacks_TLBR);
     }
 
-    public void promoCheckWhite(long wp, int start, int dest, ArrayList<move> moves, long rank) {
+    public void promoCheck(long wp, int start, int dest, ArrayList<move> moves, long rank) {
         //given rank (rank 2 for black or rank 7 for white) if pawn at rank 2 or 7, then add promotion move
         if ((wp >>> (start) & rank >>> (start) & 1) == 1) { //checks if startpos is at rank 7
             moves.add(new move(start, dest, 3, 2));
@@ -282,31 +282,31 @@ public class moveGen {
     public void pseudoWhitePawn(long wp, int lastPawnJump, ArrayList<move> pseudoMoves) {
         long pawnCaptureRight = wp & ~H_FILE & enemyPieces>>>7; //bitwise right shift 7 for right pawn captures
         long pawnCaptureLeft = wp & ~A_FILE & enemyPieces>>>9; //bitwise right shift 9 for left pawn capture
+        long verticalMove8 = wp & (empty >>> 8); //bitwise right shift for pawn moving up one square
+        long verticalMove16 = verticalMove8 & RANK_MASKS[1] & (empty >>> 16); //pawn vertical jump 2 squares
 
         //looping thru each pawn
         for (int i = Long.numberOfTrailingZeros(wp); i < 64 - Long.numberOfLeadingZeros(wp); i++) {
             if ((wp >>> i & 1) == 1) { //if pawn exists at ith right shift
                 if ((pawnCaptureRight >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheckWhite(wp, i, i + 7, pseudoMoves, RANK_7);
+                    promoCheck(wp, i, i + 7, pseudoMoves, RANK_7);
                 } else if (((RANK_5 >>> i & NOT_H >>> i & 1) == 1) & (lastPawnJump == i + 7)  &
                         ((empty >>> (i + 7) & 1) == 1)) {
                     pseudoMoves.add(new move(i, lastPawnJump, 2, 0));
                     //if capture square empty, check right en passant
                 }
                 if ((pawnCaptureLeft >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheckWhite(wp, i, i + 9, pseudoMoves, RANK_7);
+                    promoCheck(wp, i, i + 9, pseudoMoves, RANK_7);
                 } else if (((RANK_5 >>> i & NOT_A>>> i & 1) == 1) & (lastPawnJump == i + 9) &
                         ((empty >>> (i + 9) & 1) == 1)) {
                     pseudoMoves.add(new move(i, lastPawnJump, 2, 0));
                     //if capture square empty, check left en passant
                 }
 
-                if ((empty >>> (i + 8) & 1) == 1) { ///check if can move forward one square
-                    promoCheckWhite(wp, i, i + 8, pseudoMoves, RANK_7);
-                    if ((RANK_2 >>> i & empty >>> (i + 16) & 1) == 1) { //check if pawn can jump 2 squares
-                        pseudoMoves.add(new move(i, i + 16, 0, 0));
-                    }
-                }
+                if ((verticalMove8 >>> i & 1) == 1) { ///check if can move forward one square
+                    promoCheck(wp, i, i + 8, pseudoMoves, RANK_7);
+                    //check if pawn can jump 2 squares
+                } if ((verticalMove16 >>> i & 1) == 1) { pseudoMoves.add(new move(i, i + 16, 0, 0)); }
             }
         }
     }
@@ -314,29 +314,29 @@ public class moveGen {
     public void pseudoBlackPawn(long bp, int lastPawnJump, ArrayList<move> pseudoMoves) {
         long pawnCaptureLeft = bp & ~A_FILE & enemyPieces<<7; //bitwise left shift 7 for left pawn captures
         long pawnCaptureRight = bp & ~H_FILE & enemyPieces<<9; //bitwise left shift 9 for right pawn capture
+        long verticalMove8 = bp & (empty << 8); //bitwise right shift for pawn moving up one square
+        long verticalMove16 = verticalMove8 & RANK_MASKS[6] & (empty << 16); //pawn vertical jump 2 squares
         for (int i = Long.numberOfTrailingZeros(bp); i < 64 - Long.numberOfLeadingZeros(bp); i++) {
             if ((bp >>> i & 1) == 1) { //if pawn exists at ith right shift
                 if ((pawnCaptureRight >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheckWhite(bp, i, i - 9, pseudoMoves, RANK_2);
+                    promoCheck(bp, i, i - 9, pseudoMoves, RANK_2);
                 } else if (((RANK_4 >>> i & NOT_H >>> 1 & 1) == 1) & (lastPawnJump == i - 9) &
                         ((empty >>> (i - 9) & 1) == 1)) {
                     pseudoMoves.add(new move(i, lastPawnJump, 2, 0));
                     //if capture square empty, check right en passant
                 }
                 if ((pawnCaptureLeft >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheckWhite(bp, i, i - 7, pseudoMoves, RANK_2);
+                    promoCheck(bp, i, i - 7, pseudoMoves, RANK_2);
                 } else if (((RANK_4 >>> i & NOT_A >>> 1 & 1) == 1) & (lastPawnJump == i - 7) &
                         ((empty >>> (i - 7) & 1) == 1)) {
                     pseudoMoves.add(new move(i, lastPawnJump, 2, 0));
                     //if capture square empty, check right en passant
                 }
 
-                if ((empty >>> (i - 8) & 1) == 1) { ///check if can move forward one square
-                    promoCheckWhite(bp, i, i - 8, pseudoMoves, RANK_2);
-                    if ((RANK_7 >>> i & empty >>> (i - 16) & 1) == 1) { //check if pawn can jump 2 squares
-                        pseudoMoves.add(new move(i, i - 16, 0, 0));
-                    }
-                }
+                if ((verticalMove8 >>> i & 1) == 1) { ///check if can move forward one square
+                    promoCheck(bp, i, i - 8, pseudoMoves, RANK_2);
+                    //check if pawn can jump 2 squares
+                } if ((verticalMove16 >>> i & 1) == 1) { pseudoMoves.add(new move(i, i - 16, 0, 0)); }
             }
         }
     }

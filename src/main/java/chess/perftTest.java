@@ -5,7 +5,7 @@ public class perftTest {
     bitboard btb = new bitboard();
     moveGen mover = new moveGen();
 
-    public int perft(int depth) {
+    public int perft(int depth) { //calls perft method
         return perftAlg(depth, depth);
     }
     public int perftAlg(int depth, int currentDepth) { // 1 depth = 1ply
@@ -29,7 +29,8 @@ public class perftTest {
     public static void main(String[] args) {
 
         perftTest pt = new perftTest();
-        int numNodes = pt.perft(2);
-        System.out.printf("Total Nodes Searched: %d%n", numNodes);
+        int d = 2;
+        int numNodes = pt.perft(d);
+        System.out.printf("Total Nodes Searched after 1. Nf3 at depth %d ply: %d%n", d, numNodes);
     }
 }
