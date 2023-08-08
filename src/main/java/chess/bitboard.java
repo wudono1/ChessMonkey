@@ -324,15 +324,11 @@ public class bitboard {
     }
 
     public static void main(String[] args) {
-        String startPos = "rnbqkbnr/pppppppp/8/8/7P/8/PPPPPPP1/RNBQKBNR b KQkq - 0 1";
+        String startPos = "rnbqkbnr/ppp1pppp/3p4/8/7P/7R/PPPPPPP1/RNBQKBN1 b Qkq - 1 2";
 
-        int side = 1;
         bitboard btb = new bitboard(startPos);
         btb.printArrayBoard();
         moveGen moves = new moveGen();
-        moves.setSquareStatus(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk,
-                btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, side);
-
         System.out.println();
 
         ArrayList<move> legalMoves = moves.moveGenerator(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.bp, btb.bn,

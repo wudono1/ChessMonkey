@@ -136,7 +136,7 @@ public class moveGen {
 
         long diagChecks = diagSliding(sq);
         //noinspection RedundantIfStatement
-        if (((er & diagChecks) != 0) || ((eb & diagChecks) != 0)) { return true;}
+        if (((eq & diagChecks) != 0) || ((eb & diagChecks) != 0)) { return true;}
         // if rook or queen (horizontal or vertical) check found, return false
         return false;
     }
