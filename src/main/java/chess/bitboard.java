@@ -28,7 +28,6 @@ public class bitboard {
     //h1 = arrBoard[0], a8 = arrBoard[63]
 
     // piece bitboards
-    @SuppressWarnings("unused")
     public bitboard() { //default set to startpos FEN
         setBitboards("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
         turn = 1;
@@ -81,10 +80,10 @@ public class bitboard {
             bCastle = 0;
         } else {
             if ((br>>>56 & 1L) != 1) { bCastle = bCastle & 0b10; } //if rook not at h1, king cannot castle kingside
-            if ((wr>>>63 & 1L) != 1) { bCastle = bCastle & 0b01; }} //if rook not at h1, king cannot castle kingside
+            if ((br>>>63 & 1L) != 1) { bCastle = bCastle & 0b01; }} //if rook not at h1, king cannot castle kingside
     }
 
-    public void notateLists() {
+    public void notateLists() { //adds current bitboard position to notation lists
         wpList.add(wp); wnList.add(wn); wbList.add(wb); wrList.add(wr); wqList.add(wq); wkList.add(wk);
         bpList.add(bp); bnList.add(bn); bbList.add(bb); brList.add(br); bqList.add(bq); bkList.add(bk);
         wCastleList.add(wCastle); bCastleList.add(bCastle);
@@ -99,8 +98,8 @@ public class bitboard {
         plyCount_50Move++;
         if (turn == 1) {//white to move
             if (((bp | bn | bb | br | bq) & 1L<<turnMove.dest) != 0) {plyCount_50Move = 0;}
-            plyCount_50Move = 0;
             if ((wp >>> turnMove.start & 1) == 1) { //for pawn moves
+                plyCount_50Move = 0;
                 if (turnMove.moveType == 3) { //if promotion
                     wp = wp & ~(1L << (turnMove.start)); //change turn pawn bitboards
                     if (turnMove.promo == 2) {wn = wn | (1L << turnMove.dest); } //changing promotion piece bitboards
@@ -184,16 +183,16 @@ public class bitboard {
             if ((wp >>> turnMove.dest & 1) == 1) {wp = wp & ~(1L << (turnMove.dest)); } //enemy queen captured
         }
         checkCastlingRights();
-        setBoardArray();
         turn = turn * -1;
+        notateLists();
     }
 
     public void unmakeMove1Ply() { //half move (1ply) unmake
         if (plyCtList.size() > 1) {
             int i = plyCtList.size() - 1;
-            wp = wpList.remove(i); wn = wnList.remove(i); wb = wbList.remove(i); wr = wrList.remove(i); wq = wpList.remove(i);
+            wp = wpList.remove(wpList.size() - 1); wn = wnList.remove(i); wb = wbList.remove(i); wr = wrList.remove(i); wq = wqList.remove(i);
             wk = wkList.remove(i);
-            bp = bpList.remove(i); bn = bnList.remove(i); bb = wbList.remove(i); br = wrList.remove(i); bq = wpList.remove(i);
+            bp = bpList.remove(i); bn = bnList.remove(i); bb = bbList.remove(i); br = brList.remove(i); bq = bqList.remove(i);
             bk = bkList.remove(i);
             wCastle = wCastleList.remove(i); bCastle = bCastleList.remove(i);
             lastPawnJump = pawnJumpList.remove(i); pawnJumpPly = pawnJumpPlyList.remove(i);

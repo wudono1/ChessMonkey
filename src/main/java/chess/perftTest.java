@@ -1,6 +1,6 @@
 package chess;
 import java.util.ArrayList;
-
+import static chess.notationKey.SQKEY;
 public class perftTest {
     bitboard btb = new bitboard();
     moveGen mover = new moveGen();
@@ -14,17 +14,22 @@ public class perftTest {
         else {
             ArrayList<move> moveList = mover.moveGenerator(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.bp, btb.bn,
                     btb.bb, btb.br, btb.bq, btb.bk, btb.turn, btb.wCastle, btb.bCastle, btb.lastPawnJump);
-            for (int i = 0; i < moveList.size(); i++) {
-                btb.makeMove(moveList.get(i));
-                nodes = nodes + perftAlg(depth, currentDepth - 1);
+            for (move m : moveList) {
+                btb.makeMove(m);
+                int nodeForMove = perftAlg(depth, currentDepth - 1);
+                nodes = nodes + nodeForMove;
+                if (currentDepth == depth) {
+                    System.out.printf("%s %s: %d%n", SQKEY.get(m.start), SQKEY.get(m.dest), nodeForMove);
+                }
                 btb.unmakeMove1Ply();
             }
         }
         return nodes;
     }
     public static void main(String[] args) {
+
         perftTest pt = new perftTest();
-        int numNodes = pt.perft(1);
-        System.out.println(numNodes);
+        int numNodes = pt.perft(2);
+        System.out.printf("Total Nodes Searched: %d%n", numNodes);
     }
 }
