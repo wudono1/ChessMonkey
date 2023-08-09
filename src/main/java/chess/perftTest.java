@@ -2,7 +2,7 @@ package chess;
 import java.util.ArrayList;
 import static chess.notationKey.SQKEY;
 public class perftTest {
-    bitboard btb = new bitboard("rnbqkbnr/pppppppp/8/8/8/6P1/PPPPPP1P/RNBQKBNR b KQkq - 0 1");
+    bitboard btb = new bitboard();
     moveGen mover = new moveGen();
 
     public long perft(int depth) { //calls perft method
