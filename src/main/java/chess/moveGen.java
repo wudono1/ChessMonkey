@@ -186,14 +186,12 @@ public class moveGen {
                 //if about to castle but king is in check, return false
 
                 if (pMove.start > pMove.dest) { //kingside castling
-                    if (squareInCheck(Long.numberOfTrailingZeros(tk) - 1, ep, en, eb, er, eq, ek, turn)) {return false;}
+                    if (squareInCheck(Long.numberOfTrailingZeros(tk) + 1, ep, en, eb, er, eq, ek, turn)) {return false;}
                     //if king not in check but moves thru check when castling, return False
-
                     tr = (tr & ~(1L<<(pMove.dest - 1))) | (1L << (pMove.dest + 1));
                 } if (pMove.start < pMove.dest) { //queenside castling
                     if (squareInCheck(Long.numberOfTrailingZeros(tk) - 1, ep, en, eb, er, eq, ek, turn)) {return false;}
                     //if king not in check but moves thru check when castling, return False
-
                     tr = (tr & ~(1L<<(pMove.dest + 2))) | (1L << (pMove.dest - 1));
                 }
             }
