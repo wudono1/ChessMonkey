@@ -1,7 +1,7 @@
 package chess;
 import java.util.*;
-import static java.util.Map.entry;
 @SuppressWarnings("SpellCheckingInspection")
+
 public class bitboard {
     public long wp = 0L, wn = 0L, wb = 0L, wr = 0L, wq = 0L, wk = 0L,
             bp = 0L, bn = 0L, bb = 0L, br = 0L, bq = 0L, bk = 0L;
@@ -94,7 +94,7 @@ public class bitboard {
     @SuppressWarnings("unused")
     public void makeMove(move turnMove) {//for making move. Assumes input turnMove is valid
         plyCount++;
-        if (lastPawnJump != -1 & plyCount == pawnJumpPly + 2) {lastPawnJump = -1; pawnJumpPly = -1;}
+        if (lastPawnJump != -1 & plyCount == pawnJumpPly + 1) {lastPawnJump = -1; pawnJumpPly = -1;}
         plyCount_50Move++;
         if (turn == 1) {//white to move
             if (((bp | bn | bb | br | bq) & 1L<<turnMove.dest) != 0) {plyCount_50Move = 0;}

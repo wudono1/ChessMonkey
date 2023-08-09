@@ -2,7 +2,7 @@ package chess;
 import java.util.ArrayList;
 import static chess.notationKey.SQKEY;
 public class perftTest {
-    bitboard btb = new bitboard("rnbqkbnr/ppp1pppp/8/3p4/8/6P1/PPPPPP1P/RNBQKBNR w KQkq - 0 2");
+    bitboard btb = new bitboard("rnbqkbnr/pppppppp/8/8/8/6P1/PPPPPP1P/RNBQKBNR b KQkq - 0 1");
     moveGen mover = new moveGen();
 
     public long perft(int depth) { //calls perft method
@@ -30,7 +30,7 @@ public class perftTest {
     public static void main(String[] args) {
 
         perftTest pt = new perftTest();
-        int d = 5;
+        int d = 6;
         long numNodes = pt.perft(d);
         System.out.printf("Total nodes at depth %d ply: %d%n", d, numNodes);
     }
