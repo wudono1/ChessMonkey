@@ -177,10 +177,10 @@ public class bitboard {
             }
             //checking if capture at dest square
             if ((wp >>> turnMove.dest & 1) == 1) {wp = wp & ~(1L << (turnMove.dest)); } //enemy pawn cature
-            if ((wp >>> turnMove.dest & 1) == 1) {wp = wp & ~(1L << (turnMove.dest)); } //enemy knight capture
-            if ((wp >>> turnMove.dest & 1) == 1) {wp = wp & ~(1L << (turnMove.dest)); } //enemy bishop captured
-            if ((wp >>> turnMove.dest & 1) == 1) {wp = wp & ~(1L << (turnMove.dest)); } //enemy rook captured
-            if ((wp >>> turnMove.dest & 1) == 1) {wp = wp & ~(1L << (turnMove.dest)); } //enemy queen captured
+            if ((wn >>> turnMove.dest & 1) == 1) {wn = wn & ~(1L << (turnMove.dest)); } //enemy knight capture
+            if ((wb >>> turnMove.dest & 1) == 1) {wb = wb & ~(1L << (turnMove.dest)); } //enemy bishop captured
+            if ((wr >>> turnMove.dest & 1) == 1) {wr = wr & ~(1L << (turnMove.dest)); } //enemy rook captured
+            if ((wq >>> turnMove.dest & 1) == 1) {wq = wq & ~(1L << (turnMove.dest)); } //enemy queen captured
         }
         checkCastlingRights();
         turn = turn * -1;
@@ -324,7 +324,7 @@ public class bitboard {
     }
 
     public static void main(String[] args) {
-        String startPos = "rnbqkbnr/ppp1pppp/3p4/8/7P/7R/PPPPPPP1/RNBQKBN1 b Qkq - 1 2";
+        String startPos = "rnbqkbnr/pppp1ppp/4p3/8/8/N6P/PPPPPPP1/R1BQKBNR b KQkq - 1 2";
 
         bitboard btb = new bitboard(startPos);
         btb.printArrayBoard();

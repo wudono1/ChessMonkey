@@ -2,10 +2,11 @@ package chess;
 import java.util.ArrayList;
 import static chess.notationKey.SQKEY;
 public class perftTest {
-    bitboard btb = new bitboard("rnbqkbnr/ppp1pppp/3p4/8/7P/7R/PPPPPPP1/RNBQKBN1 b Qkq - 1 2");
+    bitboard btb = new bitboard();
     moveGen mover = new moveGen();
 
     public int perft(int depth) { //calls perft method
+        btb.printArrayBoard();
         return perftAlg(depth, depth);
     }
     public int perftAlg(int depth, int currentDepth) { // 1 depth = 1ply
@@ -19,7 +20,7 @@ public class perftTest {
                 int nodeForMove = perftAlg(depth, currentDepth - 1);
                 nodes = nodes + nodeForMove;
                 if (currentDepth == depth) {
-                    System.out.printf("%s %s: %d%n", SQKEY.get(m.start), SQKEY.get(m.dest), nodeForMove);
+                    System.out.printf("%s%s: %d%n", SQKEY.get(m.start), SQKEY.get(m.dest), nodeForMove);
                 }
                 btb.unmakeMove1Ply();
             }
@@ -29,8 +30,8 @@ public class perftTest {
     public static void main(String[] args) {
 
         perftTest pt = new perftTest();
-        int d = 1;
+        int d = 6;
         int numNodes = pt.perft(d);
-        System.out.printf("Total nodes (1. h4 d6 2. Rh3) at depth after %d ply: %d%n", d, numNodes);
+        System.out.printf("Total nodes after startpos at depth %d ply: %d%n", d, numNodes);
     }
 }
