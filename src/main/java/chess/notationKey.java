@@ -1,11 +1,12 @@
 package chess;
+import java.util.Hashtable;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings("ALL")
 public class notationKey {
-    public static final HashMap<Integer, String> SQKEY = new HashMap<>();
+    public static final Hashtable<Integer, String> SQKEY = new Hashtable<>();
     static {
         SQKEY.put(0, "h1"); SQKEY.put(1, "g1"); SQKEY.put(2, "f1"); SQKEY.put(3, "e1"); SQKEY.put(4, "d1");
         SQKEY.put(5, "c1"); SQKEY.put(6, "b1"); SQKEY.put(7, "a1"); SQKEY.put(8, "h2"); SQKEY.put(9, "g2");

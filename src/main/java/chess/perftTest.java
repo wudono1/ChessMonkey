@@ -30,7 +30,7 @@ public class perftTest {
     public static void main(String[] args) {
 
         perftTest pt = new perftTest();
-        int d = 6;
+        int d = 4;
         long numNodes = pt.perft(d);
         System.out.printf("Total nodes at depth %d ply: %d%n", d, numNodes);
     }
