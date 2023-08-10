@@ -12,7 +12,6 @@ public class bitboard {
             bpList = new ArrayList<>(), bnList = new ArrayList<>(), bbList = new ArrayList<>(),
             brList = new ArrayList<>(), bqList = new ArrayList<>(), bkList = new ArrayList<>();
     public List<Integer> wCastleList = new ArrayList<>(), bCastleList = new ArrayList<>();
-    public List<move> movesPlayed = new ArrayList<>();
 
     //storing move information in bitboards. ply count = length of any list.
     public List<Integer> pawnJumpList = new ArrayList<>(), pawnJumpPlyList = new ArrayList<>(),
@@ -37,7 +36,7 @@ public class bitboard {
         lastPawnJump = -1;
         pawnJumpPly = -1;
         setBoardArray();
-        movesPlayed.add(new move(-1, -1, -1, -1));
+
         notateLists();
     }
     public bitboard(String FEN) {  //given a specific FEN
@@ -70,7 +69,6 @@ public class bitboard {
         plyCount = (Character.getNumericValue(split[5].charAt(0)) - 1) * 2;
         if (turn == -1) { plyCount = plyCount + 1;}
         notateLists();
-        movesPlayed.add(new move(-1, -1, -1, -1));
     }
 
     public void checkCastlingRights() { //checking validity of input FEN castling rights
@@ -188,7 +186,6 @@ public class bitboard {
         checkCastlingRights();
         turn = turn * -1;
         notateLists();
-        movesPlayed.add(turnMove);
     }
 
     public void unmakeMove1Ply() { //half move (1ply) unmake
