@@ -1,4 +1,8 @@
-package chess;
+package chess.testing;
+import chess.bitboard;
+import chess.move;
+import chess.moveGen;
+
 import java.util.ArrayList;
 import static chess.notationKey.SQKEY;
 public class perftTest {
@@ -30,7 +34,7 @@ public class perftTest {
     public static void main(String[] args) {
 
         perftTest pt = new perftTest();
-        int d = 6;
+        int d = 5;
         long numNodes = pt.perft(d);
         System.out.printf("Total nodes at depth %d ply: %d%n", d, numNodes);
     }

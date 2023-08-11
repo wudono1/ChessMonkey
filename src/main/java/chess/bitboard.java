@@ -39,7 +39,7 @@ public class bitboard {
 
         notateLists();
     }
-    public bitboard(String FEN) {  //given a specific FEN
+    public void setBitboardPos(String FEN) {  //given a specific FEN
         String[] split = FEN.split("\\s+");
         setBitboards(split[0]);  //set bitboards based on FEN position
         if (Objects.equals(split[1].toLowerCase(), "w")) {turn = 1;} //set turn
@@ -211,6 +211,8 @@ public class bitboard {
         else if (plyCtList.size() > 1) { unmakeMove1Ply();}
     }
 
+
+
     public void printArrayBoard() {
         setBoardArray();
         for (int i = 7; i > -1; i--) {
@@ -327,7 +329,7 @@ public class bitboard {
     public static void main(String[] args) {
         String startPos = "rnbqkbnr/pppp1ppp/4p3/8/8/N6P/PPPPPPP1/R1BQKBNR b KQkq - 1 2";
 
-        bitboard btb = new bitboard(startPos);
+        bitboard btb = new bitboard();
         btb.printArrayBoard();
         moveGen moves = new moveGen();
         System.out.println();

@@ -13,4 +13,8 @@ public class move {
         this.promo = promo; //0 = none, 2 = n, 3 = b, 4 = r, 5 = q
 
     }
+
+    public String toString() {
+        return start + "-" + dest;
+    }
 }
