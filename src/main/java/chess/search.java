@@ -41,6 +41,7 @@ public class search {
         System.out.println(searcher.negamax(5));
         move best = searcher.returnBestMove();
         System.out.println(best);
+        System.out.println();
     }
 
 
