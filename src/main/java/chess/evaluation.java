@@ -1,6 +1,6 @@
 package chess;
 
-public class materialEval {
+public class evaluation {
     public static int pcCount(long pcBB) {
         int pcCount = 0;
         for (int i = Long.numberOfTrailingZeros(pcBB); i < 64 - Long.numberOfLeadingZeros(pcBB); i++) {
