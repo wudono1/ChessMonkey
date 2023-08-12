@@ -95,7 +95,6 @@ public class bitboard {
     @SuppressWarnings("unused")
     public void makeMove(move turnMove) {//for making move. Assumes input turnMove is valid
         plyCount++;
-        if (lastPawnJump != -1 & plyCount == pawnJumpPly + 1) {lastPawnJump = -1; pawnJumpPly = -1;}
         plyCount_50Move++;
         if (turn == 1) {//white to move
             if (((bp | bn | bb | br | bq) & 1L<<turnMove.dest) != 0) {plyCount_50Move = 0;}
@@ -183,6 +182,7 @@ public class bitboard {
             if ((wr >>> turnMove.dest & 1) == 1) {wr = wr & ~(1L << (turnMove.dest)); } //enemy rook captured
             if ((wq >>> turnMove.dest & 1) == 1) {wq = wq & ~(1L << (turnMove.dest)); } //enemy queen captured
         }
+        if (lastPawnJump != -1 & plyCount == pawnJumpPly + 1) {lastPawnJump = -1; pawnJumpPly = -1;}
         checkCastlingRights();
         turn = turn * -1;
         notateLists();
