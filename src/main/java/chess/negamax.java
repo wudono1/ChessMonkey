@@ -58,7 +58,7 @@ public class negamax {
 
     public static void main(String[] args) {
         negamax searcher = new negamax();
-        System.out.println(searcher.negamaxEval(2));
+        System.out.println(searcher.negamaxEval(3));
         move best = searcher.returnBestMove();
         System.out.println(best);
     }
