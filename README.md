@@ -1,7 +1,7 @@
 # ChessMonkey
-Java chess engine\
+Java chess engine
 
-# Features:\
+# Features:
 Move generation:\
 bitboard representation with hyperbola quintessence for sliding pieces\
 testing using perft function\
