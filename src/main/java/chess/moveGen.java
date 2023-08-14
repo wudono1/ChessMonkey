@@ -12,7 +12,8 @@ import java.util.*;
    2 | 15, 14, 13, 12, 11, 10, 9,  8,
    1 | 7,  6,  5,  4,  3,  2,  1,  0 ]   BIG ENDIAN
        a   b   c   d   e   f   g   h
-     */
+   to convert to little endian: 8 * (7 - n / 8) + n % 8
+*/
 
 
 @SuppressWarnings({"SpellCheckingInspection", "GrazieInspection"})
