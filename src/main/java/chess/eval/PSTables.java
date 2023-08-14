@@ -53,7 +53,7 @@ public class PSTables { //piece square tables and calculations
             -10,  0,  0,  0,  0,  0,  0, -10,
             -20,-10,-10, -5, -5,-10,-10, -20};  //last rank
     public static int[] king_mg = {
-          //0                               7
+          //0                                7
             20, 30,  -5,  -5, -10, 10, 30,  20,   //first rank
             20, 20,  -5, -10,-10,  5,  15,  15,
             -10,-20, -20,-20,-20,-20, -20, -10,
