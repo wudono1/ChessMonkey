@@ -9,10 +9,10 @@ testing using perft function\
 Search:\
 Negamax evaluation with alpha-beta pruning\
 Zobrist hashing and transposition tables\
-Quiescence search\
+Quiescence search
 
 Evaluation heuristics:\
 Material count\
 Middlegame and endgame piece-square tables\
-Tapered evaluation for game phase transitions\
+Tapered evaluation for game phase transitions
 
