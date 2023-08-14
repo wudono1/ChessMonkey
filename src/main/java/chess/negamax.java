@@ -29,6 +29,18 @@ public class negamax {
                     btb.bb, btb.br, btb.bq, btb.bk); }
         ArrayList<move> moveList = mover.moveGenerator(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.bp, btb.bn,
                 btb.bb, btb.br, btb.bq, btb.bk, btb.turn, btb.wCastle, btb.bCastle, btb.lastPawnJump);
+        /*if (depth == originalDepth) {
+            System.out.print(btb.turn + "'s turn at depth " + depth + ": ");
+            int c = 0;
+            for (move mv : moveList) {
+                System.out.print(mv + ", ");
+                c++;
+                if (c % 10 == 0) {
+                    System.out.println();
+                }
+            }
+            System.out.println();
+        }*/
 
         if (moveList.isEmpty()) {
             if (btb.turn == 1) {
@@ -46,12 +58,15 @@ public class negamax {
         for (move m : moveList) {
             btb.makeMove(m);
             int score = -negamaxFunction(depth- 1, -beta, -alpha);
-            if (score > alpha) {
-                    alpha = score;
-                    bestMove = m;
-            }
-            if (score >= beta) { return beta; }
             btb.unmakeMove1Ply();
+            if (score >= beta) {
+                return beta; }
+            if (score > alpha) {
+                alpha = score;
+                bestMove = m;
+                System.out.println("depth: " + depth + ", Move: " + bestMove + " turn: " + btb.turn);
+            }
+
         }
         return alpha;
     }
@@ -59,8 +74,6 @@ public class negamax {
     public static void main(String[] args) {
         negamax searcher = new negamax();
         System.out.println(searcher.negamaxEval(3));
-        move best = searcher.returnBestMove();
-        System.out.println(best);
     }
 
 
