@@ -1,7 +1,18 @@
 # ChessMonkey
 Java chess engine\
-Features:\
+
+# Features:\
+Move generation:\
 bitboard representation with hyperbola quintessence for sliding pieces\
-move generation testing using perft function\
-negamax evaluation with alpha-beta pruning\
-zobrist hashing and transposition tables
+testing using perft function\
+
+Search:\
+Negamax evaluation with alpha-beta pruning\
+Zobrist hashing and transposition tables\
+Quiescence search
+
+Evaluation heuristics:\
+Material count\
+Middlegame and endgame piece-square tables\
+Tapered evaluation for game phase transitions
+
