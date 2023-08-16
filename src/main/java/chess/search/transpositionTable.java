@@ -1,4 +1,5 @@
 package chess.search;
+import chess.move;
 
 public class transpositionTable {
     public Entry[] entries;
@@ -17,6 +18,7 @@ public class transpositionTable {
         //total bytes available divided by bytes per entry
         entries = new Entry[(int)(longEntries)];
         clearTable();
+        clearTable();
     }
 
     public void clearTable() {
@@ -30,7 +32,28 @@ public class transpositionTable {
         return (int)(zobristHash % numValues);
     }
 
-    public void addEval(long zHash, short alpha, short beta, int depthFromRoot, int eval, int move) {}
+    public void addEval(long zHash, short alpha, short beta, int depthFromCurrentPos, short eval, move bestMove) {
+        int lowestDepth = Integer.MAX_VALUE;
+        int lowestDepthIndex = -1;
+        short flag = 1;
+        if (eval == alpha) { flag = 0;} if (eval == beta) { flag = 2;}
+        int index = getIndex(zHash);
+        for (int i = index; i < index + bucketSize * bucketIntervals; i += bucketIntervals) {
+            if (entries[i].depth == -1) {
+                entries[i] = new Entry(zHash, eval, depthFromCurrentPos, bestMove, flag);
+                return;
+            } else if (entries[i].zKey == zHash && entries[i].depth <= depthFromCurrentPos) {
+                entries[i].changeEvals(eval, depthFromCurrentPos, bestMove, flag);
+                return;
+            } else {
+                if (entries[i].depth < lowestDepth) {
+                    lowestDepth = entries[i].depth;
+                    lowestDepthIndex = i;
+                }
+            }
+        }
+        entries[lowestDepthIndex] = new Entry(zHash, eval, depthFromCurrentPos, bestMove, flag);
+    }
 
     public int returnPastEval(long zHash, int depthFromRoot, short alpha, short beta) {
         int eval = lookupFailed;

@@ -24,11 +24,17 @@ public class Entry {
         this.bestMove = new move(-1, -1, -1, -1);
         this.flag = -1;
     }
-    public Entry( long zKey, int eval, int bounds, int depth, move bestMove) {
+    public Entry( long zKey, short eval, int depth, move bestMove, short flag) {
         this.depth = depth;
-        this.eval = (short)(eval);
+        this.eval = eval;
         this.zKey = zKey;
         this.bestMove = bestMove;
-        this.flag = (short)(bounds);
+        this.flag = flag;
+    }
+    public void changeEvals(short eval, int depth, move bestMove, short flag) {
+        this.eval = eval;
+        this.depth = depth;
+        this.bestMove = bestMove;
+        this.flag = flag;
     }
 }
