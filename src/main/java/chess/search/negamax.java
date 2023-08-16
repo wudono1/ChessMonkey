@@ -28,6 +28,9 @@ public class negamax {
     }
 
     public int negamaxFunction(int depth, int alpha, int beta) {
+        if (btb.plyCount_50Move == 100) {
+            return 0;
+        }
 
         ArrayList<move> moveList = mover.moveGenerator(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.bp, btb.bn,
                 btb.bb, btb.br, btb.bq, btb.bk, btb.turn, btb.wCastle, btb.bCastle, btb.lastPawnJump);
@@ -35,14 +38,14 @@ public class negamax {
             switch (btb.turn) {
                 case (1) -> {
                     if (mover.squareInCheck(Long.numberOfTrailingZeros(btb.wk), btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, btb.turn)) {
-                        return MATE_SCORE + depth * 100; //encourages bot to go for longer forced mates
+                        return MATE_SCORE + depth * 25; //encourages bot to go for longer forced mates
                     } else {
                         return 0;
                     }
                 }
                 case (-1) -> {
                     if (mover.squareInCheck(Long.numberOfTrailingZeros(btb.bk), btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.turn)) {
-                        return MATE_SCORE + depth * 100;
+                        return MATE_SCORE + depth * 25;
                     } else {
                         return 0;
                     }

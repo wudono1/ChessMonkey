@@ -8,6 +8,7 @@ public class transpositionTable {
     public byte bucketSize = 4;
     public byte bucketIntervals = 2;
     public int lookupFailed = 30001;
+    public final short MATE_SCORE = -25000;
     private final short FLAG_EXACT = 1;
     private final short FLAG_LOWER_BOUND = 0;
     private final short FLAG_UPPER_BOUND = 2;
@@ -32,7 +33,23 @@ public class transpositionTable {
         return (int)(zobristHash % numValues);
     }
 
-    public void addEval(long zHash, short alpha, short beta, int depthFromCurrentPos, short eval, move bestMove) {
+    public short convertMateScoreEvalToEntry(short score, int depthSearched) {
+        if (score <= -17000) {
+            return (short)(score + 25 * (depthSearched));
+        }
+        return score;
+    }
+
+    public short convertMateScoreEntryToEval(short score, int depthToCurrentRoot) {
+        if (score <= -17000) {
+            return (short)(MATE_SCORE + 25 * (depthToCurrentRoot));
+        }
+        return score;
+    }
+
+    public void addEval(long zHash, short alpha, short beta, int depthSearchedFromCurrentPos, short eval, move bestMove) {
+        //depthSearchedFromCurrentPos = (total max iteration depth) - (depth from root to current position)
+        eval = convertMateScoreEvalToEntry(eval, depthSearchedFromCurrentPos);
         int lowestDepth = Integer.MAX_VALUE;
         int lowestDepthIndex = -1;
         short flag = 1;
@@ -40,10 +57,10 @@ public class transpositionTable {
         int index = getIndex(zHash);
         for (int i = index; i < index + bucketSize * bucketIntervals; i += bucketIntervals) {
             if (entries[i].depth == -1) {
-                entries[i] = new Entry(zHash, eval, depthFromCurrentPos, bestMove, flag);
+                entries[i] = new Entry(zHash, eval, depthSearchedFromCurrentPos, bestMove, flag);
                 return;
-            } else if (entries[i].zKey == zHash && entries[i].depth <= depthFromCurrentPos) {
-                entries[i].changeEvals(eval, depthFromCurrentPos, bestMove, flag);
+            } else if (entries[i].zKey == zHash && entries[i].depth <= depthSearchedFromCurrentPos) {
+                entries[i].changeEvals(eval, depthSearchedFromCurrentPos, bestMove, flag);
                 return;
             } else {
                 if (entries[i].depth < lowestDepth) {
@@ -52,17 +69,19 @@ public class transpositionTable {
                 }
             }
         }
-        entries[lowestDepthIndex] = new Entry(zHash, eval, depthFromCurrentPos, bestMove, flag);
+        entries[lowestDepthIndex] = new Entry(zHash, eval, depthSearchedFromCurrentPos, bestMove, flag);
     }
 
-    public int returnPastEval(long zHash, int depthFromRoot, short alpha, short beta) {
+    public int returnPastEval(long zHash, int depthfromRootToCurrent, int depthToSearchFromCurrent, short alpha, short beta) {
+        //depthToSearchFromCurrent = (max iteration depth) - (depth from root node to current position)
         int eval = lookupFailed;
         int index = getIndex(zHash);
         for (int i = index; i < index + bucketSize * bucketIntervals; i += bucketIntervals) {
-            if (entries[i].zKey == zHash && entries[i].depth >= depthFromRoot) {
+            if (entries[i].zKey == zHash && (entries[i].depth >= depthToSearchFromCurrent || entries[i].eval < -17000)) {
+                int out = convertMateScoreEntryToEval(entries[i].eval, depthfromRootToCurrent);
                 switch (entries[i].flag) {
                     case (FLAG_EXACT):
-                        return entries[i].eval;
+                        return out;
                     case (FLAG_UPPER_BOUND): //move was worse than alpha cutoff at time of evaluation
                         if (entries[i].eval < alpha) { return alpha;}
                     case (FLAG_LOWER_BOUND): //move was greater than beta cutoff at time of evaluation
@@ -70,6 +89,7 @@ public class transpositionTable {
                 }
             }
         }
+        //if no suitable eval found, return lookup failed
         return eval;
     }
 

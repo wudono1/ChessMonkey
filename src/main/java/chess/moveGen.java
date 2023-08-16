@@ -56,6 +56,16 @@ public class moveGen {
                     0x8040201008040201L, 0x4020100804020100L, 0x2010080402010000L, 0x1008040201000000L,
                     0x804020100000000L, 0x402010000000000L, 0x201000000000000L, 0x100000000000000L};
 
+    public int addMove(int start, int dest, int promoPiece, int flag) {
+        /* Notes:
+        16 BIT INT: 0000 0000 0000 0000
+        BITS 0-5: START SQUARE
+        BITS 6-11: DEST SQUARE
+        BITS 12-13: PIECE FLAG: 0 = REGULAR MOVE, 1 = CASTLE, 2 = EN PASSANT, 3 = PROMOTION
+         */
+        return (start | dest << 6 | flag << 12 | promoPiece << 14);
+    }
+
     public ArrayList<move> generatePseudoLegal(long tp, long tn, long tb, long tr, long tq, long tk, int lastPawnJump,
                                                int turnCastle, int turn) {
         ArrayList<move> pseudoMoves = new ArrayList<>();
