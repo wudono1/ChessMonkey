@@ -6,8 +6,8 @@ import chess.moveGen;
 import java.util.ArrayList;
 import static chess.notationKey.SQKEY;
 public class perftTest {
-    newBitboard btb = new newBitboard();
-    newMoveGen mover = new newMoveGen();
+    bitboard btb = new bitboard();
+    moveGen mover = new moveGen();
 
     public long perft(int depth) { //calls perft method
         btb.printArrayBoard();
@@ -34,7 +34,7 @@ public class perftTest {
     public static void main(String[] args) {
 
         perftTest pt = new perftTest();
-        int d = 7;
+        int d = 5;
         long numNodes = pt.perft(d);
         System.out.printf("Total nodes at depth %d ply: %d%n", d, numNodes);
     }

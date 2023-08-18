@@ -8,6 +8,7 @@ import java.util.Map;
 public class notationKey {
     public static final Hashtable<Integer, String> SQKEY = new Hashtable<>();
     static {
+
         SQKEY.put(0, "h1"); SQKEY.put(1, "g1"); SQKEY.put(2, "f1"); SQKEY.put(3, "e1"); SQKEY.put(4, "d1");
         SQKEY.put(5, "c1"); SQKEY.put(6, "b1"); SQKEY.put(7, "a1"); SQKEY.put(8, "h2"); SQKEY.put(9, "g2");
         SQKEY.put(10, "f2"); SQKEY.put(11, "e2"); SQKEY.put(12, "d2"); SQKEY.put(13, "c2"); SQKEY.put(14, "b2");
