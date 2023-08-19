@@ -1,5 +1,4 @@
 package chess.search;
-import chess.move;
 
 public class Entry {
     public long zKey; //8bits
@@ -38,7 +37,7 @@ public class Entry {
         this.depth = depth;
         this.flag = flag;
     }
-    public void changeEvals(short eval, int bestMove, short depth, byte flag) {
+    public void changeEvals(int eval, int bestMove, short depth, byte flag) {
         this.evalAndMove = bestMove | (eval << 16);
         this.depth = depth;
         this.flag = flag;

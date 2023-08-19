@@ -12,7 +12,7 @@ public class negamax {
     int bestMoveOverall = -1; //best move after all searching
     int bestMoveCurrentDepth = -1; //best move at current depth
     transpositionTable tt = new transpositionTable();
-    int currentSearchDepth = 5;
+    int currentMaxSearchDepth = 6;
     int maxSearchDepth = 6;
 
     int alpha = -32000;
@@ -50,27 +50,27 @@ public class negamax {
             }
         }
 
-        if (depth == currentSearchDepth) {
+        if (depth == currentMaxSearchDepth) {
             return evaluation.totalEval(btb.turn, btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.bp, btb.bn,
                     btb.bb, btb.br, btb.bq, btb.bk);
         }
         for (int m : moveList) {
             boolean drawByRep = btb.makeMove(m);
             if (drawByRep) {return 0;}
-            int score = tt.returnPastEval(btb.currentZobrist, depth, currentSearchDepth - depth, alpha, beta);
+            int score = tt.returnPastEval(btb.currentZobrist, depth, currentMaxSearchDepth - depth, alpha, beta);
             if (score == tt.lookupFailed) {score = -negamaxFunction(depth + 1, -beta, -alpha);}
-            btb.unmakeMove1Ply();
+            tt.addEval(btb.currentZobrist, score, alpha, beta, bestMoveOverall, (currentMaxSearchDepth - depth));
             if (score >= beta) {
                 return beta;
             }
-            if (score > alpha) {
+            else if (score > alpha) {
                 alpha = score;
                 bestMoveCurrentDepth = m;
                 if (depth == 0) {
                     bestMoveOverall = bestMoveCurrentDepth;
                 }
-
             }
+            btb.unmakeMove1Ply();
         }
         this.alpha = alpha;
         this.beta = beta;

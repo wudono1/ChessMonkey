@@ -1,6 +1,5 @@
 package chess.testing;
 import chess.bitboard;
-import chess.move;
 import chess.moveGen;
 
 import java.util.ArrayList;
