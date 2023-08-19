@@ -23,7 +23,7 @@ public class moveGen {
     static long empty; //All empty squares
     static long occupied;
 
-    final long NULLMOVE = 0L;
+    final long NULL_MOVE = 0L;
 
     //FILES
     static final long A_FILE = 0B1000000010000000100000001000000010000000100000001000000010000000L;
@@ -163,6 +163,9 @@ public class moveGen {
 
         //&~ = taking piece off bitboard
         //| = adding piece to bitboard
+        if (pMove == NULL_MOVE) {
+            return true;
+        }
         int start = pMove & 0b111111;
         int dest = pMove >>> 6 & 0b111111;
         int moveType = pMove >>> 12 & 0b11;
