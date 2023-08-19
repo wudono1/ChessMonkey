@@ -23,8 +23,6 @@ public class moveGen {
     static long empty; //All empty squares
     static long occupied;
 
-    final long NULLMOVE = 0L;
-
     //FILES
     static final long A_FILE = 0B1000000010000000100000001000000010000000100000001000000010000000L;
     static final long H_FILE = 0B0000000100000001000000010000000100000001000000010000000100000001L;
@@ -43,13 +41,13 @@ public class moveGen {
 
 
     static final long[] RANK_MASKS = //rank 1 to rank 8
-            { 0xFFL, 0xFF00L, 0xFF0000L, 0xFF000000L, 0xFF00000000L, 0xFF0000000000L, 0xFF000000000000L, 0xFF00000000000000L};
+            {0xFFL, 0xFF00L, 0xFF0000L, 0xFF000000L, 0xFF00000000L, 0xFF0000000000L, 0xFF000000000000L, 0xFF00000000000000L};
     static final long[] FILE_MASKS = //h file to a file. Remainder 0 = h file, remainder 7 = a file
-            { 0x0101010101010101L, 0x0202020202020202L, 0x0404040404040404L, 0x0808080808080808L, 0x1010101010101010L,
+            {0x0101010101010101L, 0x0202020202020202L, 0x0404040404040404L, 0x0808080808080808L, 0x1010101010101010L,
                     0x2020202020202020L, 0x4040404040404040L, 0x8080808080808080L};
     static long[] TR_BL_DIAG_MASKS =/*from top right to bottom left*/
             //index [(s / 8) + (s % 8)]
-            { 0x1L, 0x102L, 0x10204L, 0x1020408L, 0x102040810L, 0x10204081020L, 0x1020408102040L, 0x102040810204080L,
+            {0x1L, 0x102L, 0x10204L, 0x1020408L, 0x102040810L, 0x10204081020L, 0x1020408102040L, 0x102040810204080L,
                     0x204081020408000L, 0x408102040800000L, 0x810204080000000L, 0x1020408000000000L,
                     0x2040800000000000L, 0x4080000000000000L, 0x8000000000000000L};
     static final long[] TL_BR_DIAG_MASKS =
@@ -72,9 +70,12 @@ public class moveGen {
     public ArrayList<Integer> generatePseudoLegal(long tp, long tn, long tb, long tr, long tq, long tk, int lastPawnJump,
                                                   int turnCastle, int turn) {
         ArrayList<Integer> pseudoMoves = new ArrayList<>();
-        pseudoMoves.add(0); //null move separator between tactical and quiet moves
-        if (turn == 1) { pseudoWhitePawn(tp, lastPawnJump, pseudoMoves);}
-        if (turn == -1) { pseudoBlackPawn(tp, lastPawnJump, pseudoMoves); }
+        if (turn == 1) {
+            pseudoWhitePawn(tp, lastPawnJump, pseudoMoves);
+        }
+        if (turn == -1) {
+            pseudoBlackPawn(tp, lastPawnJump, pseudoMoves);
+        }
         allPseudoKnight(tn, pseudoMoves);
         pseudoBishop(tb, pseudoMoves);
         pseudoRook(tr, pseudoMoves);
@@ -84,6 +85,7 @@ public class moveGen {
         return pseudoMoves;
         //generates pseudo legal moves and stores to legalMoves
     }
+
     public ArrayList<Integer> moveGenerator(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn, long bb,
                                             long br, long bq, long bk, int turn, int wCastle, int bCastle, int lastPawnJump) {
         setSquareStatus(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn);
@@ -93,20 +95,25 @@ public class moveGen {
             int i = 0;
             int lstSize = legalMoves.size();
             while (i < lstSize) {
-                if (checkLegality(legalMoves.get(i), wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn)) {i++;}
-                else {
+                if (checkLegality(legalMoves.get(i), wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn)) {
+                    i++;
+                } else {
                     legalMoves.remove(i);
-                    lstSize = legalMoves.size();}
+                    lstSize = legalMoves.size();
+                }
             }
-        } if (turn == -1) { //if black to move
+        }
+        if (turn == -1) { //if black to move
             legalMoves = generatePseudoLegal(bp, bn, bb, br, bq, bk, lastPawnJump, bCastle, turn);
             int i = 0;
             int lstSize = legalMoves.size();
             while (i < lstSize) {
-                if (checkLegality(legalMoves.get(i), bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk, turn)) {i++;}
-                else {
+                if (checkLegality(legalMoves.get(i), bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk, turn)) {
+                    i++;
+                } else {
                     legalMoves.remove(i);
-                    lstSize = legalMoves.size();}
+                    lstSize = legalMoves.size();
+                }
             }
         }
         //legalMoves initially contains all legal and pseudolegal, then trimmed down to legal
@@ -120,7 +127,8 @@ public class moveGen {
         if (turn == 1) {
             turnPieces = wp | wn | wb | wr | wq;
             enemyPieces = bp | bn | bb | br | bq;
-        } if (turn == -1) {
+        }
+        if (turn == -1) {
             enemyPieces = wp | wn | wb | wr | wq;
             turnPieces = bp | bn | bb | br | bq;
         }
@@ -131,27 +139,44 @@ public class moveGen {
     public Boolean squareInCheck(int sq, long ep, long en, long eb, long er, long eq, long ek, int turn) {
         //checks if square is in check. Used for seeing if king in check, but also for castling purposes
         if (turn == 1) { //if pawn checks, return true
-            if (((NOT_H >>> sq & 1) == 1) && ((ep >>> (sq + 7) & 1) == 1)) { return true; } //right pawn check
-            if (((NOT_A >>> sq & 1) == 1) && ((ep >>> (sq + 9) & 1) == 1)) { return true; } //left pawn check
-        } if (turn == -1) {
-            if (((NOT_A >>> sq & 1) == 1) && ((ep >>> (sq - 7) & 1) == 1)) { return true; } //left pawn check
-            if (((NOT_H >>> sq & 1) == 1) && ((ep >>> (sq - 9) & 1) == 1)) { return true; } //right pawn check
+            if (((NOT_H >>> sq & 1) == 1) && ((ep >>> (sq + 7) & 1) == 1)) {
+                return true;
+            } //right pawn check
+            if (((NOT_A >>> sq & 1) == 1) && ((ep >>> (sq + 9) & 1) == 1)) {
+                return true;
+            } //left pawn check
+        }
+        if (turn == -1) {
+            if (((NOT_A >>> sq & 1) == 1) && ((ep >>> (sq - 7) & 1) == 1)) {
+                return true;
+            } //left pawn check
+            if (((NOT_H >>> sq & 1) == 1) && ((ep >>> (sq - 9) & 1) == 1)) {
+                return true;
+            } //right pawn check
         }
         long findKnightChecks = knightAttackGen(sq);
-        if ((en & findKnightChecks) != 0) { return true;}
+        if ((en & findKnightChecks) != 0) {
+            return true;
+        }
         // if enemy knight is checking return true
 
         //check if enemy king is attacking sq
         long enemyKingChecks = kingAttackGen(sq);
-        if (((ek & enemyKingChecks) != 0)) { return true;}
+        if (((ek & enemyKingChecks) != 0)) {
+            return true;
+        }
 
         long rankFileChecks = rankFileSliding(sq);
-        if (((eq & rankFileChecks) != 0) || ((er & rankFileChecks) != 0)) { return true;}
+        if (((eq & rankFileChecks) != 0) || ((er & rankFileChecks) != 0)) {
+            return true;
+        }
         // if rook or queen (horizontal or vertical) check found, return false
 
         long diagChecks = diagSliding(sq);
         //noinspection RedundantIfStatement
-        if (((eq & diagChecks) != 0) || ((eb & diagChecks) != 0)) { return true;}
+        if (((eq & diagChecks) != 0) || ((eb & diagChecks) != 0)) {
+            return true;
+        }
         // if rook or queen (horizontal or vertical) check found, return false
         return false;
     }
@@ -172,45 +197,60 @@ public class moveGen {
                 tp = tp & ~(1L << (start)); //change turn pawn bitboards
                 if (promo == 0) { //changing promotion piece bitboards
                     tn = tn | (1L << dest);
-                } if (promo == 1) {
+                }
+                if (promo == 1) {
                     tb = tb | (1L << dest);
-                } if (promo == 2) {
+                }
+                if (promo == 2) {
                     tr = tr | (1L << dest);
-                } if (promo == 3) {
+                }
+                if (promo == 3) {
                     tq = tq | (1L << dest);
                 }
-            }
-            else {
+            } else {
                 tp = (tp & ~(1L << (start))) | (1L << (dest)); // making the pseudomove
                 if (moveType == 2) { //if en passant
                     if (turn == 1) { //for changing enemy pawn bitboards
                         ep = ep & ~(1L << (dest - 8));
                     }
                     if (turn == -1) {
-                        ep = ep & ~(1L << (dest + 8));}
+                        ep = ep & ~(1L << (dest + 8));
+                    }
                 }
             }
-        } if ((tn >>> start & 1) == 1) { //knight
+        }
+        if ((tn >>> start & 1) == 1) { //knight
             tn = (tn & ~(1L << (start))) | (1L << (dest));
-        } if ((tb >>> start & 1) == 1) { //bishop
+        }
+        if ((tb >>> start & 1) == 1) { //bishop
             tb = (tb & ~(1L << (start))) | (1L << (dest));
-        } if ((tr >>> start & 1) == 1) { //rook
+        }
+        if ((tr >>> start & 1) == 1) { //rook
             tr = (tr & ~(1L << (start))) | (1L << (dest));
-        } if ((tq >>> start & 1) == 1) { //queen
+        }
+        if ((tq >>> start & 1) == 1) { //queen
             tq = (tq & ~(1L << (start))) | (1L << (dest));
-        } if ((tk >>> start & 1) == 1) { //king
+        }
+        if ((tk >>> start & 1) == 1) { //king
             tk = (tk & ~(1L << (start))) | (1L << (dest));
             if (moveType == 1) { //if castling
-                if (squareInCheck(start, ep, en, eb, er, eq, ek, turn)) {return false;}
+                if (squareInCheck(start, ep, en, eb, er, eq, ek, turn)) {
+                    return false;
+                }
                 //if about to castle but king is in check, return false
                 if (start > dest) { //kingside castling
-                    if (squareInCheck(Long.numberOfTrailingZeros(tk) + 1, ep, en, eb, er, eq, ek, turn)) {return false;}
+                    if (squareInCheck(Long.numberOfTrailingZeros(tk) + 1, ep, en, eb, er, eq, ek, turn)) {
+                        return false;
+                    }
                     //if king not in check but moves thru check when castling, return False
-                    tr = (tr & ~(1L<<(dest - 1))) | (1L << (dest + 1));
-                } if (start < dest) { //queenside castling
-                    if (squareInCheck(Long.numberOfTrailingZeros(tk) - 1, ep, en, eb, er, eq, ek, turn)) {return false;}
+                    tr = (tr & ~(1L << (dest - 1))) | (1L << (dest + 1));
+                }
+                if (start < dest) { //queenside castling
+                    if (squareInCheck(Long.numberOfTrailingZeros(tk) - 1, ep, en, eb, er, eq, ek, turn)) {
+                        return false;
+                    }
                     //if king not in check but moves thru check when castling, return False
-                    tr = (tr & ~(1L<<(dest + 2))) | (1L << (dest - 1));
+                    tr = (tr & ~(1L << (dest + 2))) | (1L << (dest - 1));
                 }
             }
         }
@@ -218,13 +258,17 @@ public class moveGen {
         //checking if capture at dest square
         if ((ep >>> dest & 1) == 1) { //enemy pawn captured
             ep = ep & ~(1L << (dest));
-        } if ((en >>> dest & 1) == 1) { //enemy knight capture
+        }
+        if ((en >>> dest & 1) == 1) { //enemy knight capture
             en = en & ~(1L << (dest));
-        } if ((eb >>> dest & 1) == 1) { //enemy bishop captured
+        }
+        if ((eb >>> dest & 1) == 1) { //enemy bishop captured
             eb = eb & ~(1L << (dest));
-        } if ((er >>> dest & 1) == 1) { //enemy rook captured
+        }
+        if ((er >>> dest & 1) == 1) { //enemy rook captured
             er = er & ~(1L << (dest));
-        } if ((eq >>> dest & 1) == 1) { //enemy queen captured
+        }
+        if ((eq >>> dest & 1) == 1) { //enemy queen captured
             eq = eq & ~(1L << (dest));
         }
 
@@ -283,26 +327,23 @@ public class moveGen {
         return (posAttacks_TRBL | negAttacks_TRBL | posAttacks_TLBR | negAttacks_TLBR);
     }
 
-    public void promoCheck(long wp, int start, int dest, ArrayList<Integer> moves, long rank, boolean capture) {
+    public void promoCheck(long wp, int start, int dest, ArrayList<Integer> moves, long rank) {
         //given rank (rank 2 for black or rank 7 for white) if pawn at rank 2 or 7, then add promotion move
         if ((wp >>> (start) & rank >>> (start) & 1) == 1) { //checks if startpos is at rank 7
-            moves.add(0, addMove(start, dest, 3, 0));
-            moves.add(0, addMove(start, dest, 3, 1));
-            moves.add(0, addMove(start, dest, 3, 2));
-            moves.add(0, addMove(start, dest, 3, 3));
+            moves.add(addMove(start, dest, 3, 0));
+            moves.add(addMove(start, dest, 3, 1));
+            moves.add(addMove(start, dest, 3, 2));
+            moves.add(addMove(start, dest, 3, 3));
         } else {
-            if (capture) {
-                moves.add(0, addMove(start, dest, 0, 0));
-            } else {
-                moves.add(addMove(start, dest, 0, 0));
-            } } //if not then add normal move
+            moves.add(addMove(start, dest, 0, 0));
+        } //if not then add normal move
 
     }
 
     @SuppressWarnings("UnusedReturnValue")
     public void pseudoWhitePawn(long wp, int lastPawnJump, ArrayList<Integer> pseudoMoves) {
-        long pawnCaptureRight = wp & ~H_FILE & enemyPieces>>>7; //bitwise right shift 7 for right pawn captures
-        long pawnCaptureLeft = wp & ~A_FILE & enemyPieces>>>9; //bitwise right shift 9 for left pawn capture
+        long pawnCaptureRight = wp & ~H_FILE & enemyPieces >>> 7; //bitwise right shift 7 for right pawn captures
+        long pawnCaptureLeft = wp & ~A_FILE & enemyPieces >>> 9; //bitwise right shift 9 for left pawn capture
         long verticalMove8 = wp & (empty >>> 8); //bitwise right shift for pawn moving up one square
         long verticalMove16 = verticalMove8 & RANK_MASKS[1] & (empty >>> 16); //pawn vertical jump 2 squares
 
@@ -310,54 +351,60 @@ public class moveGen {
         for (int i = Long.numberOfTrailingZeros(wp); i < 64 - Long.numberOfLeadingZeros(wp); i++) {
             if ((wp >>> i & 1) == 1) { //if pawn exists at ith right shift
                 if ((pawnCaptureRight >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheck(wp, i, i + 7, pseudoMoves, RANK_7, true);
-                } else if (((RANK_5 >>> i & NOT_H >>> i & 1) == 1) & (lastPawnJump == i + 7)  &
+                    promoCheck(wp, i, i + 7, pseudoMoves, RANK_7);
+                } else if (((RANK_5 >>> i & NOT_H >>> i & 1) == 1) & (lastPawnJump == i + 7) &
                         ((empty >>> (i + 7) & 1) == 1)) {
-                    pseudoMoves.add(0, addMove(i, lastPawnJump, 2, 0));
+                    pseudoMoves.add(addMove(i, lastPawnJump, 2, 0));
                     //if capture square empty, check right en passant
                 }
                 if ((pawnCaptureLeft >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheck(wp, i, i + 9, pseudoMoves, RANK_7, true);
-                } else if (((RANK_5 >>> i & NOT_A>>> i & 1) == 1) & (lastPawnJump == i + 9) &
+                    promoCheck(wp, i, i + 9, pseudoMoves, RANK_7);
+                } else if (((RANK_5 >>> i & NOT_A >>> i & 1) == 1) & (lastPawnJump == i + 9) &
                         ((empty >>> (i + 9) & 1) == 1)) {
-                    pseudoMoves.add(0, addMove(i, lastPawnJump, 2, 0));
+                    pseudoMoves.add(addMove(i, lastPawnJump, 2, 0));
                     //if capture square empty, check left en passant
                 }
 
                 if ((verticalMove8 >>> i & 1) == 1) { ///check if can move forward one square
-                    promoCheck(wp, i, i + 8, pseudoMoves, RANK_7, false);
+                    promoCheck(wp, i, i + 8, pseudoMoves, RANK_7);
                     //check if pawn can jump 2 squares
-                } if ((verticalMove16 >>> i & 1) == 1) { pseudoMoves.add(addMove(i, i + 16, 0, 0)); }
+                }
+                if ((verticalMove16 >>> i & 1) == 1) {
+                    pseudoMoves.add(addMove(i, i + 16, 0, 0));
+                }
             }
         }
     }
 
     public void pseudoBlackPawn(long bp, int lastPawnJump, ArrayList<Integer> pseudoMoves) {
-        long pawnCaptureLeft = bp & ~A_FILE & enemyPieces<<7; //bitwise left shift 7 for left pawn captures
-        long pawnCaptureRight = bp & ~H_FILE & enemyPieces<<9; //bitwise left shift 9 for right pawn capture
+        long pawnCaptureLeft = bp & ~A_FILE & enemyPieces << 7; //bitwise left shift 7 for left pawn captures
+        long pawnCaptureRight = bp & ~H_FILE & enemyPieces << 9; //bitwise left shift 9 for right pawn capture
         long verticalMove8 = bp & (empty << 8); //bitwise right shift for pawn moving up one square
         long verticalMove16 = verticalMove8 & RANK_MASKS[6] & (empty << 16); //pawn vertical jump 2 squares
         for (int i = Long.numberOfTrailingZeros(bp); i < 64 - Long.numberOfLeadingZeros(bp); i++) {
             if ((bp >>> i & 1) == 1) { //if pawn exists at ith right shift
                 if ((pawnCaptureRight >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheck(bp, i, i - 9, pseudoMoves, RANK_2, true);
+                    promoCheck(bp, i, i - 9, pseudoMoves, RANK_2);
                 } else if (((RANK_4 >>> i & NOT_H >>> 1 & 1) == 1) & (lastPawnJump == i - 9) &
                         ((empty >>> (i - 9) & 1) == 1)) {
-                    pseudoMoves.add(0, addMove(i, lastPawnJump, 2, 0));
+                    pseudoMoves.add(addMove(i, lastPawnJump, 2, 0));
                     //if capture square empty, check right en passant
                 }
                 if ((pawnCaptureLeft >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheck(bp, i, i - 7, pseudoMoves, RANK_2, true);
+                    promoCheck(bp, i, i - 7, pseudoMoves, RANK_2);
                 } else if (((RANK_4 >>> i & NOT_A >>> 1 & 1) == 1) & (lastPawnJump == i - 7) &
                         ((empty >>> (i - 7) & 1) == 1)) {
-                    pseudoMoves.add(0, addMove(i, lastPawnJump, 2, 0));
+                    pseudoMoves.add(addMove(i, lastPawnJump, 2, 0));
                     //if capture square empty, check right en passant
                 }
 
                 if ((verticalMove8 >>> i & 1) == 1) { ///check if can move forward one square
-                    promoCheck(bp, i, i - 8, pseudoMoves, RANK_2, false);
+                    promoCheck(bp, i, i - 8, pseudoMoves, RANK_2);
                     //check if pawn can jump 2 squares
-                } if ((verticalMove16 >>> i & 1) == 1) { pseudoMoves.add(addMove(i, i - 16, 0, 0)); }
+                }
+                if ((verticalMove16 >>> i & 1) == 1) {
+                    pseudoMoves.add(addMove(i, i - 16, 0, 0));
+                }
             }
         }
     }
@@ -368,45 +415,65 @@ public class moveGen {
         long attackGen = 0L;
         //generate bitboard for specific position
         long nPos = 0B1L << i;
-        if ((nPos << 10 & (NOT_GH)) != 0) {attackGen = attackGen + (nPos << 10); }
-        if ((nPos >>> 10 & (NOT_AB)) != 0) {attackGen = attackGen + (nPos >>> 10); }
-        if ((nPos << 6 & (NOT_AB)) != 0) {attackGen = attackGen + (nPos << 6); }
-        if ((nPos >>> 6 & (NOT_GH)) != 0) {attackGen = attackGen + (nPos >>> 6); }
-        if ((nPos << 15 & NOT_A) != 0) {attackGen = attackGen + (nPos << 15); }
-        if ((nPos >>> 15 & NOT_H) != 0) {attackGen = attackGen + (nPos >>> 15); }
-        if ((nPos << 17 & NOT_H) != 0) {attackGen = attackGen + (nPos << 17); }
-        if ((nPos >>> 17 & NOT_A) != 0) {attackGen = attackGen + (nPos >>> 17);}
+        if ((nPos << 10 & (NOT_GH)) != 0) {
+            attackGen = attackGen + (nPos << 10);
+        }
+        if ((nPos >>> 10 & (NOT_AB)) != 0) {
+            attackGen = attackGen + (nPos >>> 10);
+        }
+        if ((nPos << 6 & (NOT_AB)) != 0) {
+            attackGen = attackGen + (nPos << 6);
+        }
+        if ((nPos >>> 6 & (NOT_GH)) != 0) {
+            attackGen = attackGen + (nPos >>> 6);
+        }
+        if ((nPos << 15 & NOT_A) != 0) {
+            attackGen = attackGen + (nPos << 15);
+        }
+        if ((nPos >>> 15 & NOT_H) != 0) {
+            attackGen = attackGen + (nPos >>> 15);
+        }
+        if ((nPos << 17 & NOT_H) != 0) {
+            attackGen = attackGen + (nPos << 17);
+        }
+        if ((nPos >>> 17 & NOT_A) != 0) {
+            attackGen = attackGen + (nPos >>> 17);
+        }
 
         return attackGen;
     }
 
-    public void pieceMoveGenAtPos(int i, long atkSqs, ArrayList<Integer> pseudoMoves) {
-        //given list of attack squares, generate pseudo legal moves for knight or sliding piece
+    public void pseudoKnightAtPos(int i, long atkSqs, ArrayList<Integer> pseudoMoves) {
+        //given list of attack squares, generate pseudo legal moves for knight
         for (int sq = Long.numberOfTrailingZeros(atkSqs); sq < 64 - Long.numberOfLeadingZeros(atkSqs); sq++) {
             if ((atkSqs >>> sq & 1) == 1) {
-                if ((empty >>> sq & 1) == 1) {
+                if ((empty >>> sq & 1) == 1 | (enemyPieces >>> sq & 1) == 1) {
                     pseudoMoves.add(addMove(i, sq, 0, 0));
                 }
-                if ((enemyPieces >>> sq & 1) == 1) {
-                    pseudoMoves.add(0, addMove(i, sq, 0, 0));
-                }
-            }}
+            }
+        }
     }
 
     public void allPseudoKnight(long turnKnight, ArrayList<Integer> pseudoMoves) {
         for (int i = Long.numberOfTrailingZeros(turnKnight); i < 64 - Long.numberOfLeadingZeros(turnKnight); i++) {
             if ((turnKnight >>> i & 1) == 1) {
-                pieceMoveGenAtPos(i, knightAttackGen(i), pseudoMoves);}
+                pseudoKnightAtPos(i, knightAttackGen(i), pseudoMoves);
+            }
         }
     }
 
     public void pseudoBishop(long turnBishop, ArrayList<Integer> pseudoMoves) {
         for (int i = Long.numberOfTrailingZeros(turnBishop); i < 64 - Long.numberOfLeadingZeros(turnBishop); i++) {
-            if ((turnBishop >>> i & 1) == 1) { //if bishop at square
+            if ((turnBishop >>> i & 1) == 1) { //if queen at square
                 long validPseudo = diagSliding(i);
                 //find possible attack squares for all files, ranks, diags
-                pieceMoveGenAtPos(i, validPseudo, pseudoMoves);
-                //add all pseudolegal squares to ArrayList pseudoMoves
+                for (int j = Long.numberOfTrailingZeros(validPseudo); j < 64 - Long.numberOfLeadingZeros(validPseudo);
+                     j++) {
+                    if ((validPseudo >>> j & 1) == 1) {
+                        pseudoMoves.add(addMove(i, j, 0, 0));
+                    }
+                }
+                //add all attack squares to ArrayList pseudoMoves
             }
         }
     }
@@ -416,7 +483,13 @@ public class moveGen {
             if ((turnRook >>> i & 1) == 1) { //if queen at square
                 long validPseudo = rankFileSliding(i);
                 //find possible attack squares for all files, ranks, diags
-                pieceMoveGenAtPos(i, validPseudo, pseudoMoves);
+                for (int j = Long.numberOfTrailingZeros(validPseudo); j < 64 - Long.numberOfLeadingZeros(validPseudo);
+                     j++) {
+                    if ((validPseudo >>> j & 1) == 1) {
+                        pseudoMoves.add(addMove(i, j, 0, 0));
+                    }
+                }
+                //add all attack squares to ArrayList pseudoMoves
             }
         }
     }
@@ -426,7 +499,12 @@ public class moveGen {
             if ((turnQueen >>> i & 1) == 1) { //if queen at square
                 long validPseudo = rankFileSliding(i) | diagSliding(i);
                 //find possible attack squares for all files, ranks, diags
-                pieceMoveGenAtPos(i, validPseudo, pseudoMoves);
+                for (int j = Long.numberOfTrailingZeros(validPseudo); j < 64 - Long.numberOfLeadingZeros(validPseudo);
+                     j++) {
+                    if ((validPseudo >>> j & 1) == 1) {
+                        pseudoMoves.add(addMove(i, j, 0, 0));
+                    }
+                }
                 //add all attack squares to ArrayList pseudoMoves
             }
         }
@@ -438,18 +516,34 @@ public class moveGen {
         long kingPos = 0B1L << i;
         long attackGen = 0L;
         //generate bitboard for specific position
-        if ((kingPos & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1L << (i - 8)); } //move down vertically
-        if ((kingPos & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1L << (i + 8)); } //move up vertically
-        if ((kingPos & (~FILE_MASKS[0])) != 0) {attackGen = attackGen + (1L << (i - 1)); } //move right horizontal
-        if ((kingPos & (~FILE_MASKS[7])) != 0) {attackGen = attackGen + (1L << (i + 1)); } //move right horizontal
+        if ((kingPos & (~RANK_MASKS[0])) != 0) {
+            attackGen = attackGen + (1L << (i - 8));
+        } //move down vertically
+        if ((kingPos & (~RANK_MASKS[7])) != 0) {
+            attackGen = attackGen + (1L << (i + 8));
+        } //move up vertically
+        if ((kingPos & (~FILE_MASKS[0])) != 0) {
+            attackGen = attackGen + (1L << (i - 1));
+        } //move right horizontal
+        if ((kingPos & (~FILE_MASKS[7])) != 0) {
+            attackGen = attackGen + (1L << (i + 1));
+        } //move right horizontal
         //bottom left diag
-        if ((kingPos & (~FILE_MASKS[7]) & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1L<<(i - 7)); }
+        if ((kingPos & (~FILE_MASKS[7]) & (~RANK_MASKS[0])) != 0) {
+            attackGen = attackGen + (1L << (i - 7));
+        }
         //bottom right diag
-        if ((kingPos & (~FILE_MASKS[0]) & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1L<<(i - 9)); }
+        if ((kingPos & (~FILE_MASKS[0]) & (~RANK_MASKS[0])) != 0) {
+            attackGen = attackGen + (1L << (i - 9));
+        }
         //top left diag
-        if ((kingPos & (~FILE_MASKS[7]) & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1L<<(i + 9)); }
+        if ((kingPos & (~FILE_MASKS[7]) & (~RANK_MASKS[7])) != 0) {
+            attackGen = attackGen + (1L << (i + 9));
+        }
         //top right diag
-        if ((kingPos & (~FILE_MASKS[0]) & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1L<<(i + 7)); }
+        if ((kingPos & (~FILE_MASKS[0]) & (~RANK_MASKS[7])) != 0) {
+            attackGen = attackGen + (1L << (i + 7));
+        }
 
         return attackGen;
     }
@@ -462,17 +556,21 @@ public class moveGen {
         for (int sq = Long.numberOfTrailingZeros(attackGen); sq < 64 - Long.numberOfLeadingZeros(attackGen); sq++) {
             if ((attackGen >>> sq & 1) == 1) {
                 if ((empty >>> sq & 1) == 1 | (enemyPieces >>> sq & 1) == 1) {
-                    pieceMoveGenAtPos(kingPos, attackGen, pseudoMoves); }
+                    pseudoMoves.add(addMove(kingPos, sq, 0, 0));
+                }
             }
         }
 
         if (turnCastling != 0) { //for castling moves
             if ((turnCastling & 1) == 1) { //kingside castling
                 if ((empty >>> (kingPos - 1) & empty >>> (kingPos - 2) & 1) == 1) {
-                    pseudoMoves.add(addMove(kingPos, kingPos - 2, 1, 0));}
-            } if ((turnCastling >>> 1 & 1) == 1) { //queenside castling
-                if ((empty >>> (kingPos + 1) & empty >>> (kingPos + 2) & empty>>> (kingPos + 3) & 1) == 1) {
-                    pseudoMoves.add(addMove(kingPos, kingPos + 2, 1, 0));}
+                    pseudoMoves.add(addMove(kingPos, kingPos - 2, 1, 0));
+                }
+            }
+            if ((turnCastling >>> 1 & 1) == 1) { //queenside castling
+                if ((empty >>> (kingPos + 1) & empty >>> (kingPos + 2) & empty >>> (kingPos + 3) & 1) == 1) {
+                    pseudoMoves.add(addMove(kingPos, kingPos + 2, 1, 0));
+                }
             }
         }
     }
@@ -480,5 +578,4 @@ public class moveGen {
     public static void main(String[] args) {
         System.out.println();
     }
-
 }
