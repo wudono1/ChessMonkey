@@ -6,21 +6,22 @@ import chess.moveGen;
 import chess.notationKey;
 import java.util.*;
 public class negamax {
-    bitboard btb = new bitboard();
+    String testPos = "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1";
+    public bitboard btb = new bitboard();
+
     moveGen mover = new moveGen();
     final int MATE_SCORE = -25000;
     int bestMoveOverall = -1; //best move after all searching
     int bestMoveCurrentDepth = -1; //best move at current depth
     transpositionTable tt = new transpositionTable();
-    int currentMaxSearchDepth = 6;
+    int currentMaxSearchDepth = 7;
     int maxSearchDepth = 6;
 
-    int alpha = -32000;
-    int beta = 32000;
 
     public int negamaxEval() { //negamax caller
-        alpha = -32000;
-        beta = 32000;
+        //btb.setBitboardPos(testPos);
+        int alpha = -32000;
+        int beta = 32000;
         return negamaxFunction(0, alpha, beta);
     }
 
@@ -59,21 +60,21 @@ public class negamax {
             if (drawByRep) {return 0;}
             int score = tt.returnPastEval(btb.currentZobrist, depth, currentMaxSearchDepth - depth, alpha, beta);
             if (score == tt.lookupFailed) {score = -negamaxFunction(depth + 1, -beta, -alpha);}
-            tt.addEval(btb.currentZobrist, score, alpha, beta, bestMoveOverall, (currentMaxSearchDepth - depth));
+            //int score = -negamaxFunction(depth + 1, -beta, -alpha);
+            tt.addEval(btb.currentZobrist, score, alpha, beta, m, (currentMaxSearchDepth - depth));
             if (score >= beta) {
+                btb.unmakeMove1Ply();
                 return beta;
             }
-            else if (score > alpha) {
+            btb.unmakeMove1Ply();
+            if (score > alpha) {
                 alpha = score;
                 bestMoveCurrentDepth = m;
                 if (depth == 0) {
                     bestMoveOverall = bestMoveCurrentDepth;
                 }
             }
-            btb.unmakeMove1Ply();
         }
-        this.alpha = alpha;
-        this.beta = beta;
         return alpha;
     }
 
@@ -82,6 +83,7 @@ public class negamax {
         System.out.println("Eval: " + searcher.negamaxEval());
         System.out.println("Best move: " + notationKey.SQKEY.get(searcher.bestMoveOverall & 0x3F) +
                 notationKey.SQKEY.get(searcher.bestMoveOverall >>> 6 & 0x3F));
+        System.out.println(searcher.bestMoveOverall);
     }
 
 

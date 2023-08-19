@@ -208,7 +208,7 @@ public class bitboard {
         turn = turn * -1;
         currentZobrist = zobrist.getZobristKey(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn, wCastle, bCastle, lastPawnJump);
         notateLists();
-        if (repCounter.contains(currentZobrist)) {repCounter.put(currentZobrist, repCounter.get(currentZobrist) + 1);}
+        if (repCounter.containsKey(currentZobrist)) {repCounter.put(currentZobrist, repCounter.get(currentZobrist) + 1);}
         else {repCounter.put(currentZobrist, 1); }
         return repCounter.get(currentZobrist) == 3;
     }
