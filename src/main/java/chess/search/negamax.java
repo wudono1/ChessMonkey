@@ -11,10 +11,12 @@ public class negamax {
 
     moveGen mover = new moveGen();
     final int MATE_SCORE = -25000;
-    int bestMoveOverall = -1; //best move after all searching
     int bestMoveCurrentDepth = -1; //best move at current depth
+    int bestEvalCurrentDepth;
+    int bestMoveOverall = -1; //best move after all searching
+    int bestEvalOverall;
     transpositionTable tt = new transpositionTable();
-    int currentMaxSearchDepth = 6;
+    int currentMaxSearchDepth = 3;
     int maxSearchDepth = 6;
 
 
@@ -25,7 +27,15 @@ public class negamax {
         return negamaxFunction(0, alpha, beta);
     }
 
-    public int negamaxFunction(int depth, int alpha, int beta) {
+    public int iterativeDeepeningSearch() {
+        for (int i = 1; i <= maxSearchDepth; i++) {
+            currentMaxSearchDepth = i;
+            negamaxFunction(0, -32000, 32000);
+        }
+        return bestEvalOverall;
+    }
+
+    public int negamaxFunction(int currentDepthSearched, int alpha, int beta) {
         if (btb.plyCount_50Move == 100) {
             return 0;
         }
@@ -36,14 +46,14 @@ public class negamax {
             switch (btb.turn) {
                 case (1) -> {
                     if (mover.squareInCheck(Long.numberOfTrailingZeros(btb.wk), btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, btb.turn)) {
-                        return MATE_SCORE + depth * 10; //encourages engine to go for longer forced mates
+                        return MATE_SCORE + currentDepthSearched * 10; //encourages engine to go for longer forced mates
                     } else {
                         return 0;
                     }
                 }
                 case (-1) -> {
                     if (mover.squareInCheck(Long.numberOfTrailingZeros(btb.bk), btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.turn)) {
-                        return MATE_SCORE + depth * 10;
+                        return MATE_SCORE + currentDepthSearched * 10;
                     } else {
                         return 0;
                     }
@@ -51,17 +61,18 @@ public class negamax {
             }
         }
 
-        if (depth == currentMaxSearchDepth) {
+        if (currentDepthSearched == currentMaxSearchDepth) {
             return evaluation.totalEval(btb.turn, btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.bp, btb.bn,
                     btb.bb, btb.br, btb.bq, btb.bk);
         }
         for (int m : moveList) {
             boolean drawByRep = btb.makeMove(m);
             if (drawByRep) {return 0;}
-            int score = tt.returnPastEval(btb.currentZobrist, depth, currentMaxSearchDepth - depth, alpha, beta);
-            if (score == tt.lookupFailed) {score = -negamaxFunction(depth + 1, -beta, -alpha);}
+            int score = tt.returnPastEval(btb.currentZobrist, currentDepthSearched, currentMaxSearchDepth - currentDepthSearched,
+                    alpha, beta);
+            if (score == tt.lookupFailed) {score = -negamaxFunction(currentDepthSearched + 1, -beta, -alpha);}
             //int score = -negamaxFunction(depth + 1, -beta, -alpha);
-            tt.addEval(btb.currentZobrist, score, alpha, beta, m, (currentMaxSearchDepth - depth));
+            tt.addEval(btb.currentZobrist, score, alpha, beta, m, (currentMaxSearchDepth - currentDepthSearched));
             if (score >= beta) {
                 btb.unmakeMove1Ply();
                 return beta;
@@ -70,8 +81,10 @@ public class negamax {
             if (score > alpha) {
                 alpha = score;
                 bestMoveCurrentDepth = m;
-                if (depth == 0) {
+                bestEvalCurrentDepth = score;
+                if (currentDepthSearched == 0) {
                     bestMoveOverall = bestMoveCurrentDepth;
+                    bestEvalOverall = bestEvalCurrentDepth;
                 }
             }
         }

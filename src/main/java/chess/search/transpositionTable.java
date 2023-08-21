@@ -50,8 +50,8 @@ public class transpositionTable {
         //depthFromCurrentToEnd = (total max iteration depth) - (depth from root to current position)
         int eval = convertMateScoreEvalToEntry(score, depthFromCurrent);
         byte flag = 1;
-        if (eval <= alpha) { flag = 0;} //if eval is less than alpha lower cutoff
-        if (eval >= beta) { flag = 2;} //if eval is more than beta upper cutoff
+        if (eval == alpha) { flag = 0;} //if eval is less than alpha lower cutoff
+        if (eval == beta) { flag = 2;} //if eval is more than beta upper cutoff
         int index = getIndex(zHash);
         int lowestDepth = Integer.MAX_VALUE;
         int lowestDepthIndex = index;
