@@ -14,7 +14,7 @@ public class negamax {
     int bestMoveOverall = -1; //best move after all searching
     int bestMoveCurrentDepth = -1; //best move at current depth
     transpositionTable tt = new transpositionTable();
-    int currentMaxSearchDepth = 7;
+    int currentMaxSearchDepth = 6;
     int maxSearchDepth = 6;
 
 

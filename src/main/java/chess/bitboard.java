@@ -44,6 +44,7 @@ public class bitboard {
         repCounter.put(currentZobrist, 1);
     }
     public void setBitboardPos(String FEN) {  //given a specific FEN
+        wp = wn = wb = wr = wq = wk = bp = bn = bb = br = bq = bk = 0;
         clearLists();
         String[] split = FEN.split("\\s+");
         setBitboards(split[0]);  //set bitboards based on FEN position
