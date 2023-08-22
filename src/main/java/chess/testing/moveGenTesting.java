@@ -356,7 +356,7 @@ public class moveGenTesting {
                 tacticalMoves.add(addMove(start, dest, 3, 3));
                 tacticalMoves.add(addMove(start, dest, 3, 2));
                 tacticalMoves.add(addMove(start, dest, 3, 1));
-                tacticalMoves.add(addMove(start, dest, 3, 1));
+                tacticalMoves.add(addMove(start, dest, 3, 0));
             } case 0 -> tacticalMoves.add(addMove(start, dest, 0, 0));  //if not then add normal move
         }
     }
@@ -367,7 +367,7 @@ public class moveGenTesting {
                 tacticalMoves.add(addMove(start, dest, 3, 3));
                 tacticalMoves.add(addMove(start, dest, 3, 2));
                 tacticalMoves.add(addMove(start, dest, 3, 1));
-                tacticalMoves.add(addMove(start, dest, 3, 1));
+                tacticalMoves.add(addMove(start, dest, 3, 0));
             } case 0 -> quietMoves.add(addMove(start, dest, 0, 0));
         }
 
@@ -378,6 +378,54 @@ public class moveGenTesting {
             tacticalMoves.add(addMove(start, dest, 3, 1));
         } else { quietMoves.add(addMove(start, dest, 0, 0)); } //if not then add normal move*/
 
+    }
+
+    public void promoCheckCaptures(long wp, int start, int dest, long rank, ArrayList<Integer> pseudoTactical) {
+        switch ((int)((wp >>> (start) & rank >>> (start) & 1) )) {  //checks if startpos is at rank 7
+            case 1 -> {
+                pseudoTactical.add(addMove(start, dest, 3, 3));
+                pseudoTactical.add(addMove(start, dest, 3, 2));
+                pseudoTactical.add(addMove(start, dest, 3, 1));
+                pseudoTactical.add(addMove(start, dest, 3, 0));
+            } case 0 -> pseudoTactical.add(addMove(start, dest, 0, 0));  //if not then add normal move
+        }
+    }
+
+    public void pseudoWhitePawnTactical(long wp, int lastPawnJump, ArrayList<Integer>pseudoTactical) {
+        long pawnCaptureRight = wp & ~H_FILE & enemyPieces>>>7; //bitwise right shift 7 for right pawn captures
+        long pawnCaptureLeft = wp & ~A_FILE & enemyPieces>>>9; //bitwise right shift 9 for left pawn capture
+        long pawnPromotion8 = (wp & RANK_7) & (empty >>> 8); //non capture pawn promotions
+        long epSquare = 0L;
+        if (lastPawnJump != -1) { epSquare = 1L << lastPawnJump;}
+        if (((wp & ~A_FILE) & epSquare >>> 9) != 0) {
+            pseudoTactical.add(addMove(lastPawnJump - 9, lastPawnJump, 2, 0));
+        } if (((wp & ~H_FILE) & epSquare >>> 7) != 0) {
+            pseudoTactical.add(addMove(lastPawnJump - 7, lastPawnJump, 2, 0));
+        } for (int i = Long.numberOfTrailingZeros(pawnCaptureRight); i < 64 - Long.numberOfLeadingZeros(pawnCaptureRight);
+               i++) { //right pawn capture
+            if ((pawnCaptureRight >>> i & 1) == 1) {promoCheckCaptures(wp, i, i + 7, RANK_7, pseudoTactical);}
+        } for (int i = Long.numberOfTrailingZeros(pawnCaptureLeft); i < 64 - Long.numberOfLeadingZeros(pawnCaptureLeft);
+               i++) { //left pawn capture
+            if ((pawnCaptureLeft >>> i & 1) == 1) {promoCheckCaptures(wp, i, i + 9, RANK_7, pseudoTactical);}
+        } for (int i = Long.numberOfTrailingZeros(pawnPromotion8); i < 64 - Long.numberOfLeadingZeros(pawnPromotion8); i++) {
+            if ((pawnPromotion8 >>> i & 1) == 1) {
+                pseudoTactical.add(addMove(i, i + 8, 3, 3));
+                pseudoTactical.add(addMove(i, i + 8, 3, 2));
+                pseudoTactical.add(addMove(i, i + 8, 3, 1));
+                pseudoTactical.add(addMove(i, i + 9, 3, 0));
+            }
+        }
+    }
+
+    public void pseudoWhitePawnQuietChecks(long wp, ArrayList<Integer> pseudoQuietChecks) {
+        long verticalMove8 = (wp & ~RANK_7) & (empty >>> 8); //bitwise right shift for pawn moving up one square
+        long verticalMove16 = verticalMove8 & RANK_MASKS[1] & (empty >>> 16); //pawn vertical jump 2 squares
+        for (int i = Long.numberOfTrailingZeros(verticalMove8); i < Long.numberOfLeadingZeros(verticalMove8); i++) {
+            //pawn move up 1
+            if ((verticalMove8 >>> i & 1) == 1) { pseudoQuietChecks.add(addMove(i, i + 8, 0, 0)); }
+        } for (int i = Long.numberOfTrailingZeros(verticalMove16); i < Long.numberOfLeadingZeros(verticalMove16); i++) {
+            if ((verticalMove16 >>> i & 1) == 1) {pseudoQuietChecks.add(addMove(i, i + 16, 0, 0)); }
+        }
     }
 
     public void pseudoWhitePawn(long wp, int lastPawnJump) {
