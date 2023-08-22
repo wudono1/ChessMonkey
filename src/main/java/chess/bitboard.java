@@ -118,6 +118,7 @@ public class bitboard {
         int promo = turnMove >>> 14 & 0b11;
         plyCount++;
         plyCount_50Move++;
+
         if (turn == 1) {//white to move
             if (((bp | bn | bb | br | bq) & 1L<<dest) != 0) {plyCount_50Move = 0;}
             if ((wp >>> start & 1) == 1) { //for pawn moves
@@ -237,13 +238,6 @@ public class bitboard {
         }
     }
 
-    public void unmakeMove2Ply() { //full move (2ply) unmake
-        if (plyCtList.size() > 2) { unmakeMove1Ply(); unmakeMove1Ply();}
-        else if (plyCtList.size() > 1) { unmakeMove1Ply();}
-    }
-
-
-
     public void printArrayBoard() {
         setBoardArray();
         for (int i = 7; i > -1; i--) {
@@ -358,31 +352,13 @@ public class bitboard {
     }
 
     public static void main(String[] args) {
-        String testPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        /*String testPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
         bitboard btb = new bitboard();
         btb.setBitboardPos(testPos);
         btb.printArrayBoard();
         System.out.println(btb.currentZobrist);
-        moveGen moves = new moveGen();
-        System.out.println();
-
-        ArrayList<Integer> legalMoves = moves.moveGenerator(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.bp, btb.bn,
-                btb.bb, btb.br, btb.bq, btb.bk, btb.turn, btb.wCastle, btb.bCastle, btb.lastPawnJump);
-        int j = 0;
-        for (int pMove : legalMoves) {
-            System.out.print("[ " + (pMove & 0b111111) + ", " + (pMove >>> 6 & 0b111111) + "], ");
-            j++;
-            if (j % 10 == 0) { System.out.println();}
-        }
-        System.out.println();
-
-        int test = -459;
-        int test1 = 1713;
-        int merged = test1 | (test << 16);
-        System.out.println(merged);
-        System.out.println(merged & 0b1111111111111111);
-        System.out.println(merged >> 16);
+        System.out.println();*/
 
 
 

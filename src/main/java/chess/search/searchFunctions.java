@@ -5,7 +5,7 @@ import chess.eval.evaluation;
 import chess.moveGen;
 import chess.notationKey;
 import java.util.*;
-public class negamax {
+public class searchFunctions {
     String testPos = "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1";
     public bitboard btb = new bitboard();
 
@@ -45,10 +45,15 @@ public class negamax {
         if (btb.plyCount_50Move == 100) {
             return 0;
         }
-
-        ArrayList<Integer> moveList = mover.moveGenerator(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.bp, btb.bn,
-                btb.bb, btb.br, btb.bq, btb.bk, btb.turn, btb.wCastle, btb.bCastle, btb.lastPawnJump);
-        if (moveList.isEmpty()) {
+        ArrayList<Integer> allMoves = new ArrayList<>();
+        ArrayList<Integer> captures = new ArrayList<>();
+        ArrayList<Integer> quietMoves = new ArrayList<>();
+        ArrayList<Integer> checks = new ArrayList<>();
+        mover.generateAllLegalMoves(btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.bp, btb.bn,
+                btb.bb, btb.br, btb.bq, btb.bk, btb.turn, btb.wCastle, btb.bCastle, btb.lastPawnJump,
+                captures, quietMoves, checks);
+        allMoves.addAll(captures); allMoves.addAll(checks); allMoves.addAll(quietMoves);
+        if (allMoves.isEmpty()) {
             switch (btb.turn) {
                 case (1) -> {
                     if (mover.squareInCheck(Long.numberOfTrailingZeros(btb.wk), btb.bp, btb.bn, btb.bb, btb.br, btb.bq, btb.bk, btb.turn)) {
@@ -71,7 +76,7 @@ public class negamax {
             return evaluation.totalEval(btb.turn, btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.bp, btb.bn,
                     btb.bb, btb.br, btb.bq, btb.bk);
         }
-        for (int m : moveList) {
+        for (int m : allMoves) {
             boolean drawByRep = btb.makeMove(m);
             if (drawByRep) {return 0;}
             int score = tt.returnPastEval(btb.currentZobrist, currentDepthSearched, currentMaxSearchDepth - currentDepthSearched,
@@ -102,8 +107,14 @@ public class negamax {
         return alpha;
     }
 
+    public int quiescenceSearch(int alpha, int beta){
+        int currentPositionEval = evaluation.totalEval(btb.turn, btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.bp, btb.bn,
+                btb.bb, btb.br, btb.bq, btb.bk);
+        return 0;
+    }
+
     public static void main(String[] args) {
-        negamax searcher = new negamax();
+        searchFunctions searcher = new searchFunctions();
         System.out.println("Eval: " + searcher.iterativeDeepeningSearch());
         System.out.println("Depth searched: " + searcher.currentMaxSearchDepth);
         System.out.println("Best move: " + notationKey.SQKEY.get(searcher.bestMoveOverall & 0x3F) +

@@ -1,11 +1,12 @@
 package chess.testing;
 import chess.bitboard;
+import chess.moveGen;
 
 import java.util.ArrayList;
 import static chess.notationKey.SQKEY;
 public class perftTest {
     bitboard btb = new bitboard();
-    moveGenTesting2 mover = new moveGenTesting2();
+    moveGen mover = new moveGen();
 
     public long perft(int depth) { //calls perft method
         btb.printArrayBoard();
@@ -43,7 +44,7 @@ public class perftTest {
 
         perftTest pt = new perftTest();
         //pt.setBitboard("rnbqkbnr/1pp1pppp/p2p4/8/4P3/7P/PPPP1PP1/RNBQKBNR w KQkq - 0 3");
-        int d = 7;
+        int d = 6;
         long numNodes = pt.perft(d);
         System.out.printf("Total nodes at depth %d ply: %d%n", d, numNodes);
 
