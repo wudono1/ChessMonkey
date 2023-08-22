@@ -303,12 +303,7 @@ public class moveGen {
         }
         if (squareInCheck(Long.numberOfTrailingZeros(ek), tp, tn, tb, tr, tq, tk, turn)) {
             //if move is legal and puts enemy king in check, move it to checks array
-            turnPieces = origTPs;
-            enemyPieces = origEnemy;
-            empty = origEmpty;
-            occupied = origOcc;
             checks.add(pMove);
-            return false;
         }
         turnPieces = origTPs;
         enemyPieces = origEnemy;
