@@ -11,6 +11,10 @@ public class perftTest {
         btb.printArrayBoard();
         return perftAlg(depth, depth);
     }
+
+    public void setBitboard(String FEN) {
+        btb.setBitboardPos(FEN);
+    }
     public long perftAlg(int depth, int currentDepth) { // 1 depth = 1ply
         long nodes = 0;
         if (currentDepth == 0) { return 1L; }
@@ -28,6 +32,7 @@ public class perftTest {
                 long nodeForMove = perftAlg(depth, currentDepth - 1);
                 nodes = nodes + nodeForMove;
                 if (currentDepth == depth) {
+                    if (m == 1032) { System.out.println(m); }
                     System.out.printf("%s%s: %d%n", SQKEY.get(m & 0b111111), SQKEY.get(m >>> 6 & 0b111111), nodeForMove);
                 }
                 btb.unmakeMove1Ply();
