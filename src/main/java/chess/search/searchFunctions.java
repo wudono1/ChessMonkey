@@ -6,8 +6,6 @@ import chess.moveGen;
 import chess.notationKey;
 import java.util.*;
 public class searchFunctions {
-    String testPos = "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1";
-    public bitboard btb = new bitboard();
 
     moveGen mover = new moveGen();
     final int MATE_SCORE = -25000;
@@ -17,7 +15,7 @@ public class searchFunctions {
     int bestEvalOverall;
     transpositionTable tt = new transpositionTable();
     int currentMaxSearchDepth = 4;
-    int maxSearchDepth = 6;
+    int maxSearchDepth = 4;
 
     int nodesSearched = 0;
     int nodesFromTT = 0;
@@ -26,27 +24,27 @@ public class searchFunctions {
         System.out.println("Number of position evals in transposition table: " + tt.numTTElements());
     }
 
-    public int negamaxSearch() { //negamax caller
+    public int negamaxSearch(bitboard btb) { //negamax caller
         //btb.setBitboardPos(testPos);
         int alpha = -32000;
         int beta = 32000;
-        return negamaxFunction(0, alpha, beta);
+        return negamaxFunction(btb, 0, alpha, beta);
     }
 
-    public int iterativeDeepeningSearch() {
+    public int iterativeDeepeningSearch(bitboard btb) {
         for (int i = 1; i <= maxSearchDepth; i++) {
             currentMaxSearchDepth = i;
-            negamaxFunction(0, -32000, 32000);
+            negamaxFunction(btb, 0, -32000, 32000);
         }
         return bestEvalOverall;
     }
 
-    public int negamaxFunction(int currentDepthSearched, int alpha, int beta) {
+    public int negamaxFunction(bitboard btb, int currentDepthSearched, int alpha, int beta) {
         if (btb.plyCount_50Move == 100) {
             return 0;
         }
         if (currentDepthSearched == currentMaxSearchDepth) {
-            return quiescenceSearch(alpha, beta, currentDepthSearched);
+            return quiescenceSearch(btb, alpha, beta, currentDepthSearched);
         }
         ArrayList<Integer> allMoves = new ArrayList<>();
         ArrayList<Integer> captures = new ArrayList<>();
@@ -83,7 +81,7 @@ public class searchFunctions {
             if (score != tt.lookupFailed) {nodesFromTT++;}
             if (score == tt.lookupFailed) {
                 nodesSearched++;
-                score = -negamaxFunction(currentDepthSearched + 1, -beta, -alpha);}
+                score = -negamaxFunction(btb, currentDepthSearched + 1, -beta, -alpha);}
 
             //int score = -negamaxFunction(depth + 1, -beta, -alpha);
             tt.addEval(btb.currentZobrist, score, alpha, beta, m, (currentMaxSearchDepth - currentDepthSearched));
@@ -105,7 +103,7 @@ public class searchFunctions {
         return alpha;
     }
 
-    public int quiescenceSearch(int alpha, int beta, int quiescentStartDepth){
+    public int quiescenceSearch(bitboard btb, int alpha, int beta, int quiescentStartDepth){
         //simple quiescent search
         //preQuiescentEval = evaluation before quiescent search began, in case captures/checks make position worse
         ArrayList<Integer> captures = new ArrayList<>();
@@ -141,7 +139,7 @@ public class searchFunctions {
         if (currentPosEval > alpha) {alpha = currentPosEval;}
         for (int m : captures) {
             btb.makeMove(m);
-            int score = - quiescenceSearch(-beta, -alpha, quiescentStartDepth + 1);
+            int score = - quiescenceSearch(btb, -beta, -alpha, quiescentStartDepth + 1);
             btb.unmakeMove1Ply();
             if (score >= beta) {
                 return beta;
@@ -154,8 +152,9 @@ public class searchFunctions {
     }
 
     public static void main(String[] args) {
+        bitboard btb = new bitboard();
         searchFunctions searcher = new searchFunctions();
-        System.out.println("Eval: " + searcher.iterativeDeepeningSearch());
+        System.out.println("Eval: " + searcher.iterativeDeepeningSearch(btb));
         System.out.println("Depth searched: " + searcher.currentMaxSearchDepth);
         System.out.println("Best move: " + notationKey.SQKEY.get(searcher.bestMoveOverall & 0x3F) +
                 notationKey.SQKEY.get(searcher.bestMoveOverall >>> 6 & 0x3F));
