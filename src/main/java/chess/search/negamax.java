@@ -16,11 +16,17 @@ public class negamax {
     int bestMoveOverall = -1; //best move after all searching
     int bestEvalOverall;
     transpositionTable tt = new transpositionTable();
-    int currentMaxSearchDepth = 3;
+    int currentMaxSearchDepth = 6;
     int maxSearchDepth = 6;
 
+    int nodesSearched = 0;
+    int nodesFromTT = 0;
 
-    public int negamaxEval() { //negamax caller
+    public void getTTSize() {
+        System.out.println("Number of position evals in transposition table: " + tt.numTTElements());
+    }
+
+    public int negamaxSearch() { //negamax caller
         //btb.setBitboardPos(testPos);
         int alpha = -32000;
         int beta = 32000;
@@ -70,8 +76,13 @@ public class negamax {
             if (drawByRep) {return 0;}
             int score = tt.returnPastEval(btb.currentZobrist, currentDepthSearched, currentMaxSearchDepth - currentDepthSearched,
                     alpha, beta);
-            if (score == tt.lookupFailed) {score = -negamaxFunction(currentDepthSearched + 1, -beta, -alpha);}
+            if (score != tt.lookupFailed) {nodesFromTT++;}
+            if (score == tt.lookupFailed) {
+                nodesSearched++;
+                score = -negamaxFunction(currentDepthSearched + 1, -beta, -alpha);}
+
             //int score = -negamaxFunction(depth + 1, -beta, -alpha);
+
             tt.addEval(btb.currentZobrist, score, alpha, beta, m, (currentMaxSearchDepth - currentDepthSearched));
             if (score >= beta) {
                 btb.unmakeMove1Ply();
@@ -93,10 +104,18 @@ public class negamax {
 
     public static void main(String[] args) {
         negamax searcher = new negamax();
-        System.out.println("Eval: " + searcher.negamaxEval());
+        System.out.println("Eval: " + searcher.iterativeDeepeningSearch());
+        System.out.println("Depth searched: " + searcher.currentMaxSearchDepth);
         System.out.println("Best move: " + notationKey.SQKEY.get(searcher.bestMoveOverall & 0x3F) +
                 notationKey.SQKEY.get(searcher.bestMoveOverall >>> 6 & 0x3F));
-        System.out.println(searcher.bestMoveOverall);
+        System.out.println("16 bit move notation: " + searcher.bestMoveOverall);
+
+        System.out.println();
+
+        System.out.println("Total move sequences possible: 119060324");
+        System.out.println("Number positions evaluated: " + searcher.nodesSearched);
+        searcher.getTTSize();
+        System.out.println("Number of times transposition table used: " + searcher.nodesFromTT);
     }
 
 

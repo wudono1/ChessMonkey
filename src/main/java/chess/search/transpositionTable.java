@@ -5,9 +5,10 @@ import chess.constants;
 public class transpositionTable {
     public Entry[] entries;
     public int power2TTEntries = 26;
-    public  int zobristRightShift = 64 - power2TTEntries;
+    public int zobristRightShift = 64 - power2TTEntries;
     public int numTTEntries;
     //public int entrySize = 80;
+    public final Entry NULL_ENTRY = new Entry();
     public byte bucketSize = 4;
     public byte bucketIntervals = 2;
     public int lookupFailed = 30001;
@@ -33,6 +34,14 @@ public class transpositionTable {
         {
             entries[i] = new Entry();
         }
+    }
+
+    public int numTTElements() {
+        int count = 0;
+        for (Entry e : entries) {
+            if (e.flag != -1) {count++; }
+        }
+        return count;
     }
 
     public int getIndex(long zobristHash) {
