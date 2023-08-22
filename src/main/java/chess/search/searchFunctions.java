@@ -17,7 +17,7 @@ public class searchFunctions {
     int bestEvalOverall;
     transpositionTable tt = new transpositionTable();
     int currentMaxSearchDepth = 4;
-    int maxSearchDepth = 5;
+    int maxSearchDepth = 6;
 
     int nodesSearched = 0;
     int nodesFromTT = 0;
