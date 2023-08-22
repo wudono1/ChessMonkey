@@ -4,7 +4,7 @@ Java chess engine
 # Features:
 Move generation:\
 bitboard representation with hyperbola quintessence for sliding pieces\
-testing using perft function\
+testing using perft function
 
 Search:\
 Negamax evaluation with alpha-beta pruning\
