@@ -134,6 +134,7 @@ public class moveGenTesting2 {
                     captures.remove(i);
                     lstSize = captures.size();}
             }
+            i = 0;
             lstSize = quietMoves.size();
             while (i < lstSize) {
                 if (checkLegalityQuiet(quietMoves.get(i), bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk, turn, checks)) {
