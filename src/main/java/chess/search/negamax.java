@@ -11,11 +11,11 @@ public class negamax {
     final int MATE_SCORE = -25000;
     int bestMoveCurrentDepth = -1; //best move at current depth
     int bestEvalCurrentDepth;
-    int bestMoveOverall = -1; //best move after all searching
-    int bestEvalOverall;
+    int bestMoveOverall; //best move after all searching
+    int bestEvalOverall = -32000;
     transpositionTable tt = new transpositionTable();
     int currentMaxSearchDepth = 4;
-    int maxSearchDepth = 7;
+    int maxSearchDepth = 6;
 
     int nodesSearched = 0;
     int nodesFromTT = 0;
@@ -35,6 +35,10 @@ public class negamax {
         for (int i = 1; i <= maxSearchDepth; i++) {
             currentMaxSearchDepth = i;
             negamaxFunction(btb, 0, -32000, 32000);
+            if (bestEvalCurrentDepth > bestEvalOverall) {
+                bestEvalOverall = bestEvalCurrentDepth;
+                bestMoveOverall = bestMoveCurrentDepth;
+            }
         }
         return bestEvalOverall;
     }
@@ -92,11 +96,9 @@ public class negamax {
             btb.unmakeMove1Ply();
             if (score > alpha) {
                 alpha = score;
-                bestMoveCurrentDepth = m;
-                bestEvalCurrentDepth = score;
                 if (currentDepthSearched == 0) {
-                    bestMoveOverall = bestMoveCurrentDepth;
-                    bestEvalOverall = bestEvalCurrentDepth;
+                    bestMoveCurrentDepth = m;
+                    bestEvalCurrentDepth = score;
                 }
             }
         }
