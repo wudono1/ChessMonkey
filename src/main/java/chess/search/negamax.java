@@ -5,7 +5,7 @@ import chess.eval.evaluation;
 import chess.moveGen;
 import chess.notationKey;
 import java.util.*;
-public class searchFunctions {
+public class negamax {
 
     moveGen mover = new moveGen();
     final int MATE_SCORE = -25000;
@@ -15,7 +15,7 @@ public class searchFunctions {
     int bestEvalOverall;
     transpositionTable tt = new transpositionTable();
     int currentMaxSearchDepth = 4;
-    int maxSearchDepth = 4;
+    int maxSearchDepth = 7;
 
     int nodesSearched = 0;
     int nodesFromTT = 0;
@@ -153,7 +153,7 @@ public class searchFunctions {
 
     public static void main(String[] args) {
         bitboard btb = new bitboard();
-        searchFunctions searcher = new searchFunctions();
+        negamax searcher = new negamax();
         System.out.println("Eval: " + searcher.iterativeDeepeningSearch(btb));
         System.out.println("Depth searched: " + searcher.currentMaxSearchDepth);
         System.out.println("Best move: " + notationKey.SQKEY.get(searcher.bestMoveOverall & 0x3F) +
@@ -162,7 +162,7 @@ public class searchFunctions {
 
         System.out.println();
 
-        System.out.println("Total move sequences possible: 4,865,609");
+        System.out.println("Total move sequences possible: 3,195,901,860");
         System.out.println("Number positions evaluated: " + searcher.nodesSearched);
         searcher.getTTSize();
         System.out.println("Number of times transposition table used: " + searcher.nodesFromTT);
