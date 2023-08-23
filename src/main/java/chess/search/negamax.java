@@ -133,8 +133,7 @@ public class negamax {
         /*evaluate current position first. If not capturing is better than capturing, then alpha = currentpositioneval
         after looking for capture moves
          */
-        int currentPosEval = evaluation.totalEval(btb.turn, btb.wp, btb.wn, btb.wb, btb.wr, btb.wq, btb.wk, btb.bp, btb.bn,
-                btb.bb, btb.br, btb.bq, btb.bk);
+        int currentPosEval = evaluation.totalEval(btb);
         if (currentPosEval >= beta) { return beta;}
         if (currentPosEval > alpha) {alpha = currentPosEval;}
         for (int m : captures) {

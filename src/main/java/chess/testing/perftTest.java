@@ -31,7 +31,7 @@ public class perftTest {
                     captures, quietMoves, checks);
             allMoves.addAll(quietMoves); allMoves.addAll(checks); allMoves.addAll(captures);
             for ( int m : allMoves) {
-                btb.improvedMakeMove(m);
+                btb.makeMove(m);
                 long nodeForMove = perftAlg(depth, currentDepth - 1);
                 nodes = nodes + nodeForMove;
                 if (currentDepth == depth) {

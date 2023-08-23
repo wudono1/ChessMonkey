@@ -215,6 +215,25 @@ public class bitboard {
         zobristKeyList.add(currentZobrist);
     }
 
+    public boolean makeMove(int move) {
+        int start = move & 0b111111;
+        int dest = move >>> 6 & 0b111111;
+        int moveType = move >>> 12 & 0b11;
+        int promo = move >>> 14 & 0b11;
+        if (turn == 1) {
+            makeMoveFunctionWhite(start, dest, moveType, promo);
+        } if (turn == -1) {
+            makeMoveFunctionBlack(start, dest, moveType, promo);
+        }
+        if (lastPawnJump != -1 & plyCount > pawnJumpPly) {lastPawnJump = -1; pawnJumpPly = -1;}
+        checkCastlingRights();
+        turn = turn * -1;
+        currentZobrist = zobrist.getZobristKey(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn, wCastle, bCastle, lastPawnJump);
+        notateLists();
+        if (repCounter.containsKey(currentZobrist)) {repCounter.put(currentZobrist, repCounter.get(currentZobrist) + 1);}
+        else {repCounter.put(currentZobrist, 1); }
+        return (repCounter.get(currentZobrist) == 3);
+    }
 
     public void makeMoveFunctionWhite(int start, int dest, int moveType, int promo) {
         plyCount++;
@@ -362,130 +381,6 @@ public class bitboard {
             wqCount--;
             plyCount_50Move = 0;
         }
-    }
-
-    public boolean improvedMakeMove(int move) {
-        int start = move & 0b111111;
-        int dest = move >>> 6 & 0b111111;
-        int moveType = move >>> 12 & 0b11;
-        int promo = move >>> 14 & 0b11;
-        if (turn == 1) {
-            makeMoveFunctionWhite(start, dest, moveType, promo);
-        } if (turn == -1) {
-            makeMoveFunctionBlack(start, dest, moveType, promo);
-        }
-        if (lastPawnJump != -1 & plyCount > pawnJumpPly) {lastPawnJump = -1; pawnJumpPly = -1;}
-        checkCastlingRights();
-        turn = turn * -1;
-        currentZobrist = zobrist.getZobristKey(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn, wCastle, bCastle, lastPawnJump);
-        notateLists();
-        if (repCounter.containsKey(currentZobrist)) {repCounter.put(currentZobrist, repCounter.get(currentZobrist) + 1);}
-        else {repCounter.put(currentZobrist, 1); }
-        return (repCounter.get(currentZobrist) == 3);
-    }
-
-    public boolean makeMove(int turnMove) {//for making move. Assumes input turnMove is valid
-        int start = turnMove & 0b111111;
-        int dest = turnMove >>> 6 & 0b111111;
-        int moveType = turnMove >>> 12 & 0b11;
-        int promo = turnMove >>> 14 & 0b11;
-        plyCount++;
-        plyCount_50Move++;
-
-        if (turn == 1) {//white to move
-            if (((bp | bn | bb | br | bq) & 1L<<dest) != 0) {plyCount_50Move = 0;}
-            if ((wp >>> start & 1) == 1) { //for pawn moves
-                plyCount_50Move = 0;
-                if (moveType == 3) { //if promotion
-                    wp = wp & ~(1L << (start)); //change turn pawn bitboards
-                    if (promo == 0) {wn = wn | (1L << dest); } //changing promotion piece bitboards
-                    if (promo == 1) {wb = wb | (1L << dest); }
-                    if (promo == 2) {wr = wr | (1L << dest); }
-                    if (promo == 3) {wq = wq | (1L << dest); }
-                } else {
-                    wp = (wp & ~(1L << (start))) | (1L << (dest)); // making the pseudomove
-                    if (moveType == 2) {bp = bp & ~(1L << (dest - 8));}} //if en passant
-                if (dest == start + 16) {
-                    lastPawnJump = dest - 8;
-                    pawnJumpPly = plyCount;
-                }
-            }
-            //knight
-            if ((wn >>> start & 1) == 1) {wn = (wn & ~(1L << (start))) | (1L << (dest));}
-            //bishop
-            if ((wb >>> start & 1) == 1) {wb = (wb & ~(1L << (start))) | (1L << (dest));}
-            //rook
-            if ((wr >>> start & 1) == 1) {wr = (wr & ~(1L << (start))) | (1L << (dest));}
-            //queen
-            if ((wq >>> start & 1) == 1) {wq = (wq & ~(1L << (start))) | (1L << (dest));}
-            //king
-            if ((wk >>> start & 1) == 1) {
-                wk = (wk & ~(1L << (start))) | (1L << (dest));
-                if (moveType == 1) { //if castling
-                    //kingside castling
-                    if (start > dest) { wr = (wr & ~(1L << (dest - 1))) | (1L << (dest + 1)); }
-                    //queenside castling
-                    if (start < dest) { wr = (wr & ~(1L << (dest + 2))) | (1L << (dest - 1)); }
-                }
-            }
-            //checking if capture at dest square
-            if ((bp >>> dest & 1) == 1) {bp = bp & ~(1L << (dest)); } //enemy pawn cature
-            if ((bn >>> dest & 1) == 1) {bn = bn & ~(1L << (dest)); } //enemy knight capture
-            if ((bb >>> dest & 1) == 1) {bb = bb & ~(1L << (dest)); } //enemy bishop captured
-            if ((br >>> dest & 1) == 1) {br = br & ~(1L << (dest)); } //enemy rook captured
-            if ((bq >>> dest & 1) == 1) {bq = bq & ~(1L << (dest)); } //enemy queen captured
-
-        }if (turn == -1) { //black to move
-            if (((wp | wn | wb | wr | wq) & 1L<< dest) != 0) {plyCount_50Move = 0;}
-            if ((bp >>> start & 1) == 1) { //for pawn moves
-                plyCount_50Move = 0;
-                if (moveType == 3) { //if promotion
-                    bp = bp & ~(1L << (start)); //change turn pawn bitboards
-                    if (promo == 0) {bn = bn | (1L << dest); } //changing promotion piece bitboards
-                    if (promo == 1) {bb = bb | (1L << dest); }
-                    if (promo == 2) {br = br | (1L << dest); }
-                    if (promo == 3) {bq = bq | (1L << dest); }
-                } else {
-                    bp = (bp & ~(1L << (start))) | (1L << (dest)); // making the pseudomove
-                    if (moveType == 2) {wp = wp & ~(1L << (dest + 8));}} //if en passant
-                if (dest == start - 16) {
-                    lastPawnJump = dest + 8;
-                    pawnJumpPly = plyCount;
-                }
-            }
-            //knight
-            if ((bn >>> start & 1) == 1) {bn = (bn & ~(1L << (start))) | (1L << (dest));}
-            //bishop
-            if ((bb >>> start & 1) == 1) {bb = (bb & ~(1L << (start))) | (1L << (dest));}
-            //rook
-            if ((br >>> start & 1) == 1) {br = (br & ~(1L << (start))) | (1L << (dest));}
-            //queen
-            if ((bq >>> start & 1) == 1) {bq = (bq & ~(1L << (start))) | (1L << (dest));}
-            //king
-            if ((bk >>> start & 1) == 1) {
-                bk = (bk & ~(1L << (start))) | (1L << (dest));
-                if (moveType == 1) { //if castling
-                    //kingside castling
-                    if (start > dest) { br = (br & ~(1L << (dest - 1))) | (1L << (dest + 1)); }
-                    //queenside castling
-                    if (start < dest) { br = (br & ~(1L << (dest + 2))) | (1L << (dest - 1)); }
-                }
-            }
-            //checking if capture at dest square
-            if ((wp >>> dest & 1) == 1) {wp = wp & ~(1L << (dest)); } //enemy pawn cature
-            if ((wn >>> dest & 1) == 1) {wn = wn & ~(1L << (dest)); } //enemy knight capture
-            if ((wb >>> dest & 1) == 1) {wb = wb & ~(1L << (dest)); } //enemy bishop captured
-            if ((wr >>> dest & 1) == 1) {wr = wr & ~(1L << (dest)); } //enemy rook captured
-            if ((wq >>> dest & 1) == 1) {wq = wq & ~(1L << (dest)); } //enemy queen captured
-        }
-        if (lastPawnJump != -1 & plyCount == pawnJumpPly + 1) {lastPawnJump = -1; pawnJumpPly = -1;}
-        checkCastlingRights();
-        turn = turn * -1;
-        currentZobrist = zobrist.getZobristKey(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn, wCastle, bCastle, lastPawnJump);
-        notateLists();
-        if (repCounter.containsKey(currentZobrist)) {repCounter.put(currentZobrist, repCounter.get(currentZobrist) + 1);}
-        else {repCounter.put(currentZobrist, 1); }
-        return repCounter.get(currentZobrist) == 3;
     }
 
     public void unmakeMove1Ply() { //half move (1ply) unmake
