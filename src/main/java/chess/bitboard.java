@@ -83,8 +83,8 @@ public class bitboard {
         fileToInt.put("a", 7);
 
         if (!Objects.equals(split[3], "-")) {
-            lastPawnJump = lastPawnJump + fileToInt.get(split[3].substring(0, 1)); //set last pawn move
-            lastPawnJump = lastPawnJump + ((Character.getNumericValue(split[3].charAt(2)) - 1) * 8);
+            lastPawnJump = lastPawnJump + fileToInt.get(split[3].substring(0, 1)) + 1; //set last pawn move
+            lastPawnJump = lastPawnJump + ((Character.getNumericValue(split[3].charAt(1)) - 1) * 8);
         } else { lastPawnJump = -1;}
         plyCount_50Move = Character.getNumericValue(split[4].charAt(0)); //set plyCount
         plyCount = (Character.getNumericValue(split[5].charAt(0)) - 1) * 2;
@@ -258,10 +258,10 @@ public class bitboard {
                     } case 1 -> { //promote to bishop
                         wb = wb | (1L << dest);
                         wbCount++;
-                    }case 2 -> { //promote to rook
+                    } case 2 -> { //promote to rook
                         wr = wr | (1L << dest);
                         wrCount++;
-                    }case 3 -> { //promote to queen
+                    } case 3 -> { //promote to queen
                         wq = wq | (1L << dest);
                         wqCount++;}
                 }
@@ -374,7 +374,7 @@ public class bitboard {
         } if (turn == -1) {
             makeMoveFunctionBlack(start, dest, moveType, promo);
         }
-        if (lastPawnJump != -1 & plyCount == pawnJumpPly + 1) {lastPawnJump = -1; pawnJumpPly = -1;}
+        if (lastPawnJump != -1 & plyCount > pawnJumpPly) {lastPawnJump = -1; pawnJumpPly = -1;}
         checkCastlingRights();
         turn = turn * -1;
         currentZobrist = zobrist.getZobristKey(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn, wCastle, bCastle, lastPawnJump);
