@@ -29,10 +29,11 @@ public class perftTest {
                     captures, quietMoves, checks);
             allMoves.addAll(quietMoves); allMoves.addAll(checks); allMoves.addAll(captures);
             for ( int m : allMoves) {
-                btb.makeMove(m);
+                btb.improvedMakeMove(m);
                 long nodeForMove = perftAlg(depth, currentDepth - 1);
                 nodes = nodes + nodeForMove;
                 if (currentDepth == depth) {
+                    //System.out.println(m);
                     System.out.printf("%s%s: %d%n", SQKEY.get(m & 0b111111), SQKEY.get(m >>> 6 & 0b111111), nodeForMove);
                 }
                 btb.unmakeMove1Ply();
@@ -43,7 +44,8 @@ public class perftTest {
     public static void main(String[] args) {
 
         perftTest pt = new perftTest();
-        int d = 5;
+        pt.setBitboard("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 3 7");
+        int d = 4;
         long numNodes = pt.perft(d);
         System.out.printf("Total nodes at depth %d ply: %d%n", d, numNodes);
 

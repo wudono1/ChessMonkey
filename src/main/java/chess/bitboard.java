@@ -8,8 +8,8 @@ public class bitboard {
             bp = 0L, bn = 0L, bb = 0L, br = 0L, bq = 0L, bk = 0L;
 
     //piece counts
-    public int wpCount = 8, bpCount = 8, wnCount = 2, bnCount = 2, wbCount = 2, bbCount = 2, wrCount = 2, brCount = 2,
-            wqCount = 1, bqCount = 1;
+    public int wpCount = 0, bpCount = 0, wnCount = 0, bnCount = 0, wbCount = 0, bbCount = 0, wrCount = 0, brCount = 0,
+            wqCount = 0, bqCount = 0;
     public long currentZobrist;
 
     //storing past bitboards for make and unmake move
@@ -17,6 +17,10 @@ public class bitboard {
             wrList = new ArrayList<>(), wqList = new ArrayList<>(), wkList = new ArrayList<>(),
             bpList = new ArrayList<>(), bnList = new ArrayList<>(), bbList = new ArrayList<>(),
             brList = new ArrayList<>(), bqList = new ArrayList<>(), bkList = new ArrayList<>();
+    public List<Integer> wpPastCounts = new ArrayList<>(), wnPastCounts = new ArrayList<>(), wbPastCounts = new ArrayList<>(),
+            wrPastCounts = new ArrayList<>(), wqPastCounts = new ArrayList<>(), bpPastCounts = new ArrayList<>(),
+            bnPastCounts = new ArrayList<>(), bbPastCounts = new ArrayList<>(), brPastCounts = new ArrayList<>(),
+            bqPastCounts = new ArrayList<>();
     public ArrayList<Long> zobristKeyList = new ArrayList<>();
     public List<Integer> wCastleList = new ArrayList<>(), bCastleList = new ArrayList<>();
     public Hashtable<Long, Integer> repCounter = new Hashtable<>();
@@ -26,7 +30,7 @@ public class bitboard {
             moveCount50List = new ArrayList<>(), turnList = new ArrayList<>(), plyCtList = new ArrayList<>();
 
     public int turn = 1;
-    public int wCastle = 0, bCastle = 0; //2 bits each, left bit is queenside, right bit is kingside
+    public int wCastle = 0, bCastle = 0; //2 bits each, left bit is kingside, right bit is queenside
     public int lastPawnJump = -1; //if e2-e4, lastPawnJump = e3. if e7 e5, lastPawnJump == e6
     public int pawnJumpPly = -1;  //if pawnJumpPly == plyCount + 2; lastPawnJump == -1
     public int plyCount_50Move = 0; //draw when == 100
@@ -49,18 +53,24 @@ public class bitboard {
         repCounter.put(currentZobrist, 1);
     }
     public void setBitboardPos(String FEN) {  //given a specific FEN
+        FEN = FEN.trim();
         wp = wn = wb = wr = wq = wk = bp = bn = bb = br = bq = bk = 0;
+        wpCount = 0; wnCount = 0; wbCount = 0; wrCount = 0; wqCount = 0;
+        bpCount = 0; bnCount = 0; bbCount = 0; brCount = 0; bqCount = 0;
+        wCastle = 0; bCastle = 0;
         clearLists();
         String[] split = FEN.split("\\s+");
         setBitboards(split[0]);  //set bitboards based on FEN position
         if (Objects.equals(split[1].toLowerCase(), "w")) {turn = 1;} //set turn
         if (Objects.equals(split[1].toLowerCase(), "b")) {turn = -1;}
 
-        if (split[2].contains("K")) {wCastle = wCastle + 0B1;} //set castling rights
-        if (split[2].contains("Q")) {wCastle = wCastle + 0B10;}
-        if (split[2].contains("k")) {bCastle = bCastle + 0B1;}
-        if (split[2].contains("q")) {bCastle = bCastle + 0B10;}
-        checkCastlingRights();
+        if ((wk >>> 3 & 1) == 1) {
+            if (split[2].contains("K") && ((wr & 1) == 1)) { wCastle = wCastle + 0B1; } //set castling rights
+            if (split[2].contains("Q") && ((wr >>> 7 & 1) == 1)) { wCastle = wCastle + 0B10; }
+        } if ((bk >>> 59 & 1) == 1) {
+            if (split[2].contains("k") && ((br >>> 56 & 1) == 1)) { bCastle = bCastle + 0B1; }
+            if (split[2].contains("q") && ((br >>> 63 & 1) == 1)) { bCastle = bCastle + 0B10; }
+        }
 
         Hashtable<String, Integer> fileToInt = new Hashtable<>();
         fileToInt.put("h", 0);
@@ -85,38 +95,128 @@ public class bitboard {
         repCounter.put(currentZobrist, 1);
     }
 
-    public void checkCastlingRights() { //checking validity of input FEN castling rights
-        if ((wk>>>3 & 1L) != 1) {
-            wCastle = 0;
-        } else {
-            if ((wr & 1L) != 1) { wCastle = wCastle & 0b10; } //if rook not at h1, king cannot castle kingside
-            if ((wr>>>7 & 1L) != 1) { wCastle = wCastle & 0b01; }} //if rook not at h1, king cannot castle kingside
-        if ((bk>>>59 & 1L) != 1) {
-            bCastle = 0;
-        } else {
-            if ((br>>>56 & 1L) != 1) { bCastle = bCastle & 0b10; } //if rook not at h1, king cannot castle kingside
-            if ((br>>>63 & 1L) != 1) { bCastle = bCastle & 0b01; }} //if rook not at h1, king cannot castle kingside
+    public void setBoardArray() {
+        for (int i = 0; i < 64; i++) {
+            if ((wp >>> i & 0B1) == 0B1) {
+                arrBoard[i] = "P";
+            } else if ((wn >>> i & 0B1) == 0B1) {
+                arrBoard[i] = "N";
+            } else if ((wb >>> i & 0B1) == 0B1) {
+                arrBoard[i] = "B";
+            } else if ((wr >>> i & 0B1) == 0B1) {
+                arrBoard[i] = "R";
+            } else if ((wq >>> i & 0B1) == 0B1) {
+                arrBoard[i] = "Q";
+            } else if ((wk >>> i & 0B1) == 0B1) {
+                arrBoard[i] = "K";
+            } else if ((bp >>> i & 0B1) == 0B1) {
+                arrBoard[i] = "p";
+            } else if ((bn >>> i & 0B1) == 0B1) {
+                arrBoard[i] = "n";
+            } else if ((bb >>> i & 0B1) == 0B1) {
+                arrBoard[i] = "b";
+            } else if ((br >>> i & 0B1) == 0B1) {
+                arrBoard[i] = "r";
+            } else if ((bq >>> i & 0B1) == 0B1) {
+                arrBoard[i] = "q";
+            } else if ((bk >>> i & 0B1) == 0B1) {
+                arrBoard[i] = "k";
+            } else {
+                arrBoard[i] = "-";
+            }
+        }
     }
 
-    public void notateLists() { //adds current bitboard position to notation lists
-        wpList.add(wp); wnList.add(wn); wbList.add(wb); wrList.add(wr); wqList.add(wq); wkList.add(wk);
-        bpList.add(bp); bnList.add(bn); bbList.add(bb); brList.add(br); bqList.add(bq); bkList.add(bk);
-        wCastleList.add(wCastle); bCastleList.add(bCastle);
-        pawnJumpList.add(lastPawnJump); pawnJumpPlyList.add(pawnJumpPly);
-        moveCount50List.add(plyCount_50Move); plyCtList.add(plyCount); turnList.add(turn);
-        zobristKeyList.add(currentZobrist);
+    public void setBitboards (String FEN){  //FEN is strictly current position for now
+        int posCount = -1;
+        String zeroes = "000000000000000000000000000000000000000000000000000000000000000"; //length 63 0's
+        for (int i = 0; i < FEN.length(); i++) {
+
+            if (isInt(FEN.substring(i, i + 1))) {
+                posCount = posCount + Integer.parseInt(FEN.substring(i, i + 1));
+            } else if (FEN.charAt(i) != '/') {
+                posCount++;
+                long addPos = Long.parseUnsignedLong("1" + zeroes.substring(posCount), 2);
+                if (FEN.charAt(i) == 'P') {
+                    wp = wp + addPos;
+                    wpCount++;
+                } if (FEN.charAt(i) == 'N') {
+                    wn = wn + addPos;
+                    wnCount++;
+                } if (FEN.charAt(i) == 'B') {
+                    wb = wb + addPos;
+                    wbCount++;
+                } if (FEN.charAt(i) == 'R') {
+                    wr = wr + addPos;
+                    wrCount++;
+                } if (FEN.charAt(i) == 'Q') {
+                    wq = wq + addPos;
+                    wqCount++;
+                } if (FEN.charAt(i) == 'K') {
+                    wk = wk + addPos;
+                } if (FEN.charAt(i) == 'p') {
+                    bp = bp + addPos;
+                    bpCount++;
+                } if (FEN.charAt(i) == 'n') {
+                    bn = bn + addPos;
+                    bnCount++;
+                } if (FEN.charAt(i) == 'b') {
+                    bb = bb + addPos;
+                    bbCount++;
+                } if (FEN.charAt(i) == 'r') {
+                    br = br + addPos;
+                    brCount++;
+                } if (FEN.charAt(i) == 'q') {
+                    bq = bq + addPos;
+                    bqCount++;
+                } if (FEN.charAt(i) == 'k') {
+                    bk = bk + addPos;
+                }
+            }
+        }
+    }
+
+    public void checkCastlingRights() { //checking validity of input FEN castling rights
+        if ((wk>>>3 & 1L) != 1) {wCastle = 0;}
+        if ((bk>>>59 & 1L) != 1) {bCastle = 0;}
+
+        if ((wr & 1) != 1) {wCastle = wCastle & (~0b01);}
+        if ((wr>>>7 & 1) != 1) {wCastle = wCastle & (~0b10);}
+        if ((br>>>56 & 1) != 1) {bCastle = bCastle & (~0b01);}
+        if ((br>>>63 & 1) != 1) {bCastle = bCastle & (~0b10);}
+
     }
 
     public void clearLists() { //adds current bitboard position to notation lists
         wpList.clear(); wnList.clear(); wbList.clear(); wrList.clear(); wqList.clear(); wkList.clear();
         bpList.clear(); bnList.clear(); bbList.clear(); brList.clear(); bqList.clear(); bkList.clear();
         wCastleList.clear(); bCastleList.clear();
+
+        wpPastCounts.clear(); wnPastCounts.clear(); wbPastCounts.clear(); wrPastCounts.clear();
+        wqPastCounts.clear(); bpPastCounts.clear(); bnPastCounts.clear(); bbPastCounts.clear();
+        brPastCounts.clear(); bqPastCounts.clear();
+
         pawnJumpList.clear(); pawnJumpPlyList.clear(); moveCount50List.clear(); plyCtList.clear();
         turnList.clear(); zobristKeyList.clear();
         repCounter.clear();
     }
 
-    public boolean makeMoveFunctionWhite(int start, int dest, int moveType, int promo) {
+    public void notateLists() { //adds current bitboard position to notation lists
+        wpList.add(wp); wnList.add(wn); wbList.add(wb); wrList.add(wr); wqList.add(wq); wkList.add(wk);
+        bpList.add(bp); bnList.add(bn); bbList.add(bb); brList.add(br); bqList.add(bq); bkList.add(bk);
+
+        wpPastCounts.add(wpCount); wnPastCounts.add(wnCount); wbPastCounts.add(wbCount); wrPastCounts.add(wrCount);
+        wqPastCounts.add(wqCount); bpPastCounts.add(bpCount); bnPastCounts.add(bnCount); bbPastCounts.add(bbCount);
+        brPastCounts.add(brCount); bqPastCounts.add(bqCount);
+
+        wCastleList.add(wCastle); bCastleList.add(bCastle);
+        pawnJumpList.add(lastPawnJump); pawnJumpPlyList.add(pawnJumpPly);
+        moveCount50List.add(plyCount_50Move); plyCtList.add(plyCount); turnList.add(turn);
+        zobristKeyList.add(currentZobrist);
+    }
+
+
+    public void makeMoveFunctionWhite(int start, int dest, int moveType, int promo) {
         plyCount++;
         plyCount_50Move++;
         switch (moveType) {
@@ -188,17 +288,9 @@ public class bitboard {
             bqCount--;
             plyCount_50Move = 0;
         }
-        if (lastPawnJump != -1 & plyCount == pawnJumpPly + 1) {lastPawnJump = -1; pawnJumpPly = -1;}
-        checkCastlingRights();
-        turn = turn * -1;
-        currentZobrist = zobrist.getZobristKey(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn, wCastle, bCastle, lastPawnJump);
-        notateLists();
-        if (repCounter.containsKey(currentZobrist)) {repCounter.put(currentZobrist, repCounter.get(currentZobrist) + 1);}
-        else {repCounter.put(currentZobrist, 1); }
-        return (repCounter.get(currentZobrist) == 3);
     }
 
-    public boolean makeMoveFunctionBlack(int start, int dest, int moveType, int promo) {
+    public void makeMoveFunctionBlack(int start, int dest, int moveType, int promo) {
         plyCount++;
         plyCount_50Move++;
         switch (moveType) {
@@ -270,14 +362,6 @@ public class bitboard {
             wqCount--;
             plyCount_50Move = 0;
         }
-        if (lastPawnJump != -1 & plyCount == pawnJumpPly + 1) {lastPawnJump = -1; pawnJumpPly = -1;}
-        checkCastlingRights();
-        turn = turn * -1;
-        currentZobrist = zobrist.getZobristKey(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn, wCastle, bCastle, lastPawnJump);
-        notateLists();
-        if (repCounter.containsKey(currentZobrist)) {repCounter.put(currentZobrist, repCounter.get(currentZobrist) + 1);}
-        else {repCounter.put(currentZobrist, 1); }
-        return (repCounter.get(currentZobrist) == 3);
     }
 
     public boolean improvedMakeMove(int move) {
@@ -286,11 +370,18 @@ public class bitboard {
         int moveType = move >>> 12 & 0b11;
         int promo = move >>> 14 & 0b11;
         if (turn == 1) {
-            return makeMoveFunctionWhite(start, dest, moveType, promo);
+            makeMoveFunctionWhite(start, dest, moveType, promo);
         } if (turn == -1) {
-            return makeMoveFunctionBlack(start, dest, moveType, promo);
+            makeMoveFunctionBlack(start, dest, moveType, promo);
         }
-        return true;
+        if (lastPawnJump != -1 & plyCount == pawnJumpPly + 1) {lastPawnJump = -1; pawnJumpPly = -1;}
+        checkCastlingRights();
+        turn = turn * -1;
+        currentZobrist = zobrist.getZobristKey(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn, wCastle, bCastle, lastPawnJump);
+        notateLists();
+        if (repCounter.containsKey(currentZobrist)) {repCounter.put(currentZobrist, repCounter.get(currentZobrist) + 1);}
+        else {repCounter.put(currentZobrist, 1); }
+        return (repCounter.get(currentZobrist) == 3);
     }
 
     public boolean makeMove(int turnMove) {//for making move. Assumes input turnMove is valid
@@ -404,6 +495,11 @@ public class bitboard {
             wpList.remove(i); wnList.remove(i); wbList.remove(i); wrList.remove(i); wqList.remove(i); wkList.remove(i);
             bpList.remove(i); bnList.remove(i); bbList.remove(i); brList.remove(i); bqList.remove(i); bkList.remove(i);
             wCastleList.remove(i); bCastleList.remove(i); pawnJumpList.remove(i); pawnJumpPlyList.remove(i);
+
+            wpPastCounts.remove(i); wnPastCounts.remove(i); wbPastCounts.remove(i); wrPastCounts.remove(i);
+            wqPastCounts.remove(i); bpPastCounts.remove(i); bnPastCounts.remove(i); bbPastCounts.remove(i);
+            brPastCounts.remove(i); bqPastCounts.remove(i);
+
             zobristKeyList.remove(i);
             moveCount50List.remove(i); turnList.remove(i); plyCtList.remove(i);
             repCounter.put(currentZobrist, repCounter.get(currentZobrist) - 1);
@@ -413,6 +509,12 @@ public class bitboard {
             wk = wkList.get(i-1);
             bp = bpList.get(i-1); bn = bnList.get(i-1); bb = bbList.get(i-1); br = brList.get(i-1); bq = bqList.get(i-1);
             bk = bkList.get(i-1);
+
+            wpCount = wpPastCounts.get(i - 1); wnCount = wnPastCounts.get(i - 1); wbCount = wbPastCounts.get(i - 1);
+            wrCount = wrPastCounts.get(i - 1); wqCount = wqPastCounts.get(i - 1);
+            bpCount = bpPastCounts.get(i - 1); bnCount = bnPastCounts.get(i - 1); bbCount = bbPastCounts.get(i - 1);
+            brCount = brPastCounts.get(i - 1); bqCount = bqPastCounts.get(i - 1);
+
             currentZobrist = zobristKeyList.get(i - 1);
             wCastle = wCastleList.get(i-1); bCastle = bCastleList.get(i-1);
             lastPawnJump = pawnJumpList.get(i-1); pawnJumpPly = pawnJumpPlyList.get(i-1);
@@ -436,89 +538,6 @@ public class bitboard {
         System.out.println("   a  b  c  d  e  f  g  h");
     }
 
-    public void setBoardArray() {
-        for (int i = 0; i < 64; i++) {
-            if ((wp >>> i & 0B1) == 0B1) {
-                arrBoard[i] = "P";
-            } else if ((wn >>> i & 0B1) == 0B1) {
-                arrBoard[i] = "N";
-            } else if ((wb >>> i & 0B1) == 0B1) {
-                arrBoard[i] = "B";
-            } else if ((wr >>> i & 0B1) == 0B1) {
-                arrBoard[i] = "R";
-            } else if ((wq >>> i & 0B1) == 0B1) {
-                arrBoard[i] = "Q";
-            } else if ((wk >>> i & 0B1) == 0B1) {
-                arrBoard[i] = "K";
-            } else if ((bp >>> i & 0B1) == 0B1) {
-                arrBoard[i] = "p";
-            } else if ((bn >>> i & 0B1) == 0B1) {
-                arrBoard[i] = "n";
-            } else if ((bb >>> i & 0B1) == 0B1) {
-                arrBoard[i] = "b";
-            } else if ((br >>> i & 0B1) == 0B1) {
-                arrBoard[i] = "r";
-            } else if ((bq >>> i & 0B1) == 0B1) {
-                arrBoard[i] = "q";
-            } else if ((bk >>> i & 0B1) == 0B1) {
-                arrBoard[i] = "k";
-            } else {
-                arrBoard[i] = "0";
-            }
-        }
-    }
-
-
-    public void setBitboards (String FEN){  //FEN is strictly current position for now
-        int posCount = -1;
-        String zeroes = "000000000000000000000000000000000000000000000000000000000000000"; //length 63 0's
-        for (int i = 0; i < FEN.length(); i++) {
-
-            if (isInt(FEN.substring(i, i + 1))) {
-                posCount = posCount + Integer.parseInt(FEN.substring(i, i + 1));
-            } else if (FEN.charAt(i) != '/') {
-                posCount++;
-                long addPos = Long.parseUnsignedLong("1" + zeroes.substring(posCount), 2);
-                if (FEN.charAt(i) == 'P') {
-                    wp = wp + addPos;
-                }
-                if (FEN.charAt(i) == 'N') {
-                    wn = wn + addPos;
-                }
-                if (FEN.charAt(i) == 'B') {
-                    wb = wb + addPos;
-                }
-                if (FEN.charAt(i) == 'R') {
-                    wr = wr + addPos;
-                }
-                if (FEN.charAt(i) == 'Q') {
-                    wq = wq + addPos;
-                }
-                if (FEN.charAt(i) == 'K') {
-                    wk = wk + addPos;
-                }
-                if (FEN.charAt(i) == 'p') {
-                    bp = bp + addPos;
-                }
-                if (FEN.charAt(i) == 'n') {
-                    bn = bn + addPos;
-                }
-                if (FEN.charAt(i) == 'b') {
-                    bb = bb + addPos;
-                }
-                if (FEN.charAt(i) == 'r') {
-                    br = br + addPos;
-                }
-                if (FEN.charAt(i) == 'q') {
-                    bq = bq + addPos;
-                }
-                if (FEN.charAt(i) == 'k') {
-                    bk = bk + addPos;
-                }
-            }
-        }
-
-    }
     @SuppressWarnings("unused")
     public boolean isInt (String str){
         if (str.isEmpty()) {
@@ -541,8 +560,6 @@ public class bitboard {
         btb.printArrayBoard();
         System.out.println(btb.currentZobrist);
         System.out.println();*/
-
-
 
     }
 }
