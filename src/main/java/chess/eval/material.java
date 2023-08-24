@@ -3,20 +3,24 @@ import chess.bitboard;
 
 public class material {
 
-    public static int pcCount(long pcBB) {
-        int pcCount = 0;
-        for (int i = Long.numberOfTrailingZeros(pcBB); i < 64 - Long.numberOfLeadingZeros(pcBB); i++) {
-            if ((pcBB>>>i & 1) == 1) {pcCount++;}
-        } return pcCount;
-    }
-    /*public static int matCount(int turn, long wp, long wn, long wb, long wr, long wq, long bp, long bn, long bb, long br,
-                               long bq) {
-        return ((100 * (pcCount(wp) - pcCount(bp)) + 350 * (pcCount(wn) - pcCount(bn)) + 350 * (pcCount(wb) - pcCount(bb)) +
-                525 * (pcCount(wr) - pcCount(br)) + 1000 * (pcCount(wq) - pcCount(bq))) * turn);
-    }*/
+    public static final int[] BISHOP_PAIR_VS_NUM_PAWNS = {30, 34, 40, 50, 56, 58, 55, 49, 39};
 
-    public static int matCount(bitboard btb) {
-        return ((100 * (btb.wpCount - btb.bpCount) + 350 * (btb.wnCount - btb.bnCount) + 350 * (btb.wbCount - btb.bbCount) +
-                525 * (btb.wrCount - btb.brCount) + 1000 * (btb.wqCount - btb.bqCount)) * btb.turn);
+    public static int totalMatScore(int wpCount, int wnCount, int wbCount, int wrCount, int wqCount,
+                                    int bpCount, int bnCount, int bbCount, int brCount, int bqCount, int turn) {
+        return (matCount(wpCount, wnCount, wbCount, wrCount, wqCount, bpCount, bnCount, bbCount, brCount, bqCount, turn) +
+                bishopPairEval(wbCount, bbCount, wpCount, bpCount, turn)) * turn;
+    }
+
+    public static int matCount(int wpCount, int wnCount, int wbCount, int wrCount, int wqCount,
+                               int bpCount, int bnCount, int bbCount, int brCount, int bqCount, int turn) {
+        return (100 * (wpCount - bpCount) + 350 * (wnCount - bnCount) + 350 * (wbCount - bbCount) +
+                525 * (wrCount - brCount) + 1000 * (wqCount - bqCount));
+    }
+
+    public static int bishopPairEval(int wbCount, int bbCount, int wpCount, int bpCount, int turn) {
+        int bishopPairScore = 0;
+        if (wbCount >= 2) { bishopPairScore = bishopPairScore + BISHOP_PAIR_VS_NUM_PAWNS[wpCount]; }
+        if (bbCount >= 2) { bishopPairScore = bishopPairScore - BISHOP_PAIR_VS_NUM_PAWNS[bpCount]; }
+        return bishopPairScore;
     }
 }

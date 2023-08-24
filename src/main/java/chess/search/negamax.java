@@ -5,6 +5,9 @@ import chess.eval.evaluation;
 import chess.moveGen;
 import chess.notationKey;
 import java.util.*;
+
+import static chess.notationKey.SQKEY;
+
 public class negamax {
 
     moveGen mover = new moveGen();
@@ -25,16 +28,22 @@ public class negamax {
     }
 
     public int negamaxSearch(bitboard btb) { //negamax caller
-        //btb.setBitboardPos(testPos);
         int alpha = -32000;
         int beta = 32000;
         return negamaxFunction(btb, 0, alpha, beta);
     }
 
     public int iterativeDeepeningSearch(bitboard btb) {
+        btb.setBitboardPos("r2q1rk1/pb1n1ppp/2pbpn2/1p6/3P4/2NBPN2/PPQ2PPP/R1B2RK1 w - - 6 11");
         for (int i = 1; i <= maxSearchDepth; i++) {
             currentMaxSearchDepth = i;
             negamaxFunction(btb, 0, -32000, 32000);
+            System.out.printf("Best eval at iteration %d ply: %s%s%n", i,
+                    SQKEY.get(bestMoveCurrentDepth & 0b111111), SQKEY.get(bestMoveCurrentDepth >>> 6 & 0b111111));
+            System.out.println();
+            System.out.printf("Best eval at iteration %d ply: %d%n", i, bestEvalCurrentDepth);
+            System.out.println();
+            System.out.println();
             if (bestEvalCurrentDepth > bestEvalOverall) {
                 bestEvalOverall = bestEvalCurrentDepth;
                 bestMoveOverall = bestMoveCurrentDepth;
