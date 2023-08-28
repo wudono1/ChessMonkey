@@ -8,7 +8,6 @@ public class transpositionTable {
     public int zobristRightShift = 64 - power2TTEntries;
     public int numTTEntries;
     //public int entrySize = 80;
-    public final Entry NULL_ENTRY = new Entry();
     public byte bucketSize = 4;
     public byte bucketIntervals = 2;
     public int lookupFailed = 30001;
@@ -104,8 +103,7 @@ public class transpositionTable {
         for (int i = index; i < index + bucketSize * bucketIntervals; i += bucketIntervals) {
             if (i < numTTEntries) {
                 if (entries[i].zKey == zHash && entries[i].depth >= plyDepthRemaining) {
-                    eval = convertMateScoreEntryToEval(entries[i].evalAndMove,
-                            plyDepthToCurrent);
+                    eval = convertMateScoreEntryToEval(entries[i].evalAndMove, plyDepthToCurrent);
                     switch (entries[i].flag) {
                         case (FLAG_EXACT):
                             return eval;
