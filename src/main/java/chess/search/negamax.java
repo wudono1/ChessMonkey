@@ -108,7 +108,7 @@ public class negamax {
                 alpha = score;
                 if (currentDepthSearched == 0) {
                     bestMoveCurrentDepth = m;
-                    bestEvalCurrentDepth = score;
+                    bestEvalCurrentDepth = score * btb.turn;
                 }
             }
         }
@@ -173,7 +173,7 @@ public class negamax {
 
         System.out.println();
 
-        System.out.println("Total move sequences possible: 3,195,901,860");
+        System.out.println("Total move sequences possible: 119,060,324");
         System.out.println("Number positions evaluated: " + searcher.nodesSearched);
         searcher.getTTSize();
         System.out.println("Number of times transposition table used: " + searcher.nodesFromTT);

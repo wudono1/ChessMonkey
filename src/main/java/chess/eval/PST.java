@@ -1,6 +1,6 @@
 package chess.eval;
 
-public class PSTables { //piece square tables and calculations
+public class PST { //piece square tables and calculations
     public static int[] pawns_mg = {
 
             0,  0,   0,  0,  0,  0,  0,  0,
@@ -45,8 +45,8 @@ public class PSTables { //piece square tables and calculations
     public static int[] queens_mg = {
             //0                            7
             -20,-10,-10, -15, -5,-10,-10, -20,  //first rank
-            -10,  0,  0,  0,  10,  5,  0, -10,
-            -10,  5,  5,  5,   5,  5,  5, -10,
+            -10,  0,  0,  0,  0,  5,  0, -10,
+            -10,  5,  5,  5,  5,  5,  5, -10,
               0,  0,  5,  5,  5,  5,  0,  -5,
              -5,  0,  5,  5,  5,  5,  0,  -5,
             -10,  0,  5,  5,  5,  5,  0, -10,

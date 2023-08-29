@@ -102,7 +102,7 @@ public class transpositionTable {
         int index = getIndex(zHash);
         for (int i = index; i < index + bucketSize * bucketIntervals; i += bucketIntervals) {
             if (i < numTTEntries) {
-                if (entries[i].zKey == zHash && entries[i].depth >= plyDepthRemaining) {
+                if (entries[i].zKey == zHash && entries[i].depth == plyDepthRemaining) {
                     eval = convertMateScoreEntryToEval(entries[i].evalAndMove, plyDepthToCurrent);
                     switch (entries[i].flag) {
                         case (FLAG_EXACT):
