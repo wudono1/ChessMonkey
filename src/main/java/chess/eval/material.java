@@ -15,9 +15,9 @@ public class material {
 
     public static int matCount(int wpCount, int wnCount, int wbCount, int wrCount, int wqCount,
                                int bpCount, int bnCount, int bbCount, int brCount, int bqCount) {
-        return (constants.PIECE_VALS[constants.PAWN_NUM] * (wpCount - bpCount) +
-        constants.PIECE_VALS[constants.KNIGHT_NUM] * (wnCount - bnCount) + constants.PIECE_VALS[constants.BISHOP_NUM] * (wbCount - bbCount) +
-        constants.PIECE_VALS[constants.ROOK_NUM] * (wrCount - brCount) + constants.PIECE_VALS[constants.QUEEN_NUM] * (wqCount - bqCount));
+        return (constants.PIECE_VALS[constants.PAWN] * (wpCount - bpCount) +
+        constants.PIECE_VALS[constants.KNIGHT] * (wnCount - bnCount) + constants.PIECE_VALS[constants.BISHOP] * (wbCount - bbCount) +
+        constants.PIECE_VALS[constants.ROOK] * (wrCount - brCount) + constants.PIECE_VALS[constants.QUEEN] * (wqCount - bqCount));
     }
 
     public static int bishopPairEval(int wbCount, int bbCount, int wpCount, int bpCount) {
