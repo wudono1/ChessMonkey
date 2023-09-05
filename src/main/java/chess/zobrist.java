@@ -27,6 +27,8 @@ public class zobrist {
 
     }
 
+
+
     public static long getZobristKey(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn, long bb, long br,
                                   long bq, long bk, int turn, int wCastle, int bCastle, int lastPawnJump) {
         long key = 0L;

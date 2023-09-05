@@ -1,9 +1,11 @@
 package chess.eval;
 import chess.bitboard;
+import chess.constants;
 
 public class material {
 
     public static final int[] BISHOP_PAIR_VS_NUM_PAWNS = {30, 34, 40, 50, 56, 58, 55, 49, 39};
+    public static final int KING_VALUE = 20000;
 
     public static int totalMatScore(int wpCount, int wnCount, int wbCount, int wrCount, int wqCount,
                                     int bpCount, int bnCount, int bbCount, int brCount, int bqCount, int turn) {
@@ -13,8 +15,9 @@ public class material {
 
     public static int matCount(int wpCount, int wnCount, int wbCount, int wrCount, int wqCount,
                                int bpCount, int bnCount, int bbCount, int brCount, int bqCount) {
-        return (100 * (wpCount - bpCount) + 350 * (wnCount - bnCount) + 350 * (wbCount - bbCount) +
-                525 * (wrCount - brCount) + 1000 * (wqCount - bqCount));
+        return (constants.PIECE_VALS[constants.PAWN_NUM] * (wpCount - bpCount) +
+        constants.PIECE_VALS[constants.KNIGHT_NUM] * (wnCount - bnCount) + constants.PIECE_VALS[constants.BISHOP_NUM] * (wbCount - bbCount) +
+        constants.PIECE_VALS[constants.ROOK_NUM] * (wrCount - brCount) + constants.PIECE_VALS[constants.QUEEN_NUM] * (wqCount - bqCount));
     }
 
     public static int bishopPairEval(int wbCount, int bbCount, int wpCount, int bpCount) {

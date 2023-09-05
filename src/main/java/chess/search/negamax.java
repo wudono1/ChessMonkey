@@ -34,7 +34,7 @@ public class negamax {
     }
 
     public int iterativeDeepeningSearch(bitboard btb) {
-        btb.setBitboardPos("r2q1rk1/2p2ppp/p1n1b3/1pbpP3/8/2P2N2/PPBN1RPP/R1BQ2K1 b - - 0 12");
+        btb.setBitboardPos("rnbqkbnr/pppppppp/8/8/1R1P4/8/PP1PPPPP/1NBQKBNR w Kkq - 0 1");
         btb.printArrayBoard();
         for (int i = 1; i <= maxSearchDepth; i++) {
             currentMaxSearchDepth = i;
@@ -50,7 +50,7 @@ public class negamax {
                 bestMoveOverall = bestMoveCurrentDepth;
             }
         }
-        return bestEvalOverall;
+        return bestEvalCurrentDepth;
     }
 
     public int negamaxFunction(bitboard btb, int currentDepthSearched, int alpha, int beta) {
@@ -145,7 +145,7 @@ public class negamax {
         /*evaluate current position first. If not capturing is better than capturing, then alpha = currentpositioneval
         after looking for capture moves
          */
-        int currentPosEval = evaluation.totalEval(btb);
+        int currentPosEval = evaluation.totalEval(btb); //stand pat evaluation
         if (currentPosEval >= beta) { return beta;}
         if (currentPosEval > alpha) {alpha = currentPosEval;}
         for (int m : captures) {
@@ -167,9 +167,9 @@ public class negamax {
         negamax searcher = new negamax();
         System.out.println("Eval: " + searcher.iterativeDeepeningSearch(btb));
         System.out.println("Depth searched: " + searcher.currentMaxSearchDepth);
-        System.out.println("Best move: " + notationKey.SQKEY.get(searcher.bestMoveOverall & 0x3F) +
-                notationKey.SQKEY.get(searcher.bestMoveOverall >>> 6 & 0x3F));
-        System.out.println("16 bit move notation: " + searcher.bestMoveOverall);
+        System.out.println("Best move: " + notationKey.SQKEY.get(searcher.bestMoveCurrentDepth & 0x3F) +
+                notationKey.SQKEY.get(searcher.bestMoveCurrentDepth >>> 6 & 0x3F));
+        System.out.println("16 bit move notation: " + searcher.bestMoveCurrentDepth);
 
         System.out.println();
 
