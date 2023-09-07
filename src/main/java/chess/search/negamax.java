@@ -95,8 +95,8 @@ public class negamax {
             if (score != tt.lookupFailed) {nodesFromTT++;}
             if (score == tt.lookupFailed) {
                 nodesSearched++;
-                score = -negamaxFunction(btb, currentDepthSearched + 1, -beta, -alpha);}
-
+                score = -negamaxFunction(btb, currentDepthSearched + 1, -beta, -alpha);
+            }
             //int score = -negamaxFunction(depth + 1, -beta, -alpha);
             tt.addEval(btb.currentZobrist, score, alpha, beta, m, (currentMaxSearchDepth - currentDepthSearched));
             if (score >= beta) {
@@ -111,6 +111,11 @@ public class negamax {
                     bestEvalCurrentDepth = score * btb.turn;
                 }
             }
+            /*if (currentDepthSearched == currentMaxSearchDepth - 1) {
+                if (score + 350 < alpha) {
+                    return alpha; //edit to return modified quiescence search
+                }
+            }*/
         }
         return alpha;
     }
