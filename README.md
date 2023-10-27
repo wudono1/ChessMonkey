@@ -5,7 +5,7 @@ To run ChessMonkey, download the files and input a position in FEN Notation in S
 # Features:
 Move generation:\
 bitboard representation with hyperbola quintessence for sliding pieces\
-testing using perft function
+movegen testing with perft
 
 Search:\
 Negamax evaluation with alpha-beta pruning\
