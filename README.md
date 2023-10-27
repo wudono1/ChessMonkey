@@ -17,3 +17,7 @@ Material count\
 Middlegame and endgame piece-square tables\
 Tapered evaluation for game phase transitions
 
+In progress:\
+Static exchange evaluation\
+endgame piece-square tables/tapered evaluation and game phase transitions
+
