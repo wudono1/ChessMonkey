@@ -19,5 +19,5 @@ Tapered evaluation for game phase transitions
 
 In progress:\
 Static exchange evaluation\
-endgame piece-square tables/tapered evaluation and game phase transitions
+Endgame piece-square tables/tapered evaluation and game phase transitions
 
