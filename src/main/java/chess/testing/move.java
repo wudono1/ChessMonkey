@@ -8,6 +8,8 @@ public class move {
     public int moveType;
     public int promo;
 
+    // 0000 000000 000000
+
     public move(int start, int dest, int moveType, int promo) {
         this.start = start;
         this.dest = dest;

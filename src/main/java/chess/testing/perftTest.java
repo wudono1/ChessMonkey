@@ -48,7 +48,7 @@ public class perftTest {
 
         perftTest pt = new perftTest();
         //pt.setBitboard("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
-        int d = 6;
+        int d = 5;
         long numNodes = pt.perft(d);
         System.out.printf("Total nodes at depth %d ply: %d%n", d, numNodes);
         System.out.println(pt.rootNodes + " initial moves");

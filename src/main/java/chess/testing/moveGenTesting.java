@@ -18,9 +18,6 @@ import java.util.*;
 
 @SuppressWarnings({"SpellCheckingInspection", "GrazieInspection"})
 public class moveGenTesting {
-    public ArrayList<Integer> tacticalMoves = new ArrayList<>();
-    public ArrayList<Integer> quietMoves = new ArrayList<>();
-    public ArrayList<Integer> checks = new ArrayList<>();
 
     static long turnPieces; //All pieces of current side to play except king
     static long enemyPieces; //All pieces of enemy side except king
@@ -39,10 +36,7 @@ public class moveGenTesting {
 
     //RANKS
     static final long RANK_2 = 0B0000000000000000000000000000000000000000000000001111111100000000L;
-    static final long RANK_4 = 0B0000000000000000000000000000000011111111000000000000000000000000L;
-    static final long RANK_5 = 0B0000000000000000000000001111111100000000000000000000000000000000L;
     static final long RANK_7 = 0B0000000011111111000000000000000000000000000000000000000000000000L;
-
 
     static final long[] RANK_MASKS = //rank 1 to rank 8
             { 0xFFL, 0xFF00L, 0xFF0000L, 0xFF000000L, 0xFF00000000L, 0xFF0000000000L, 0xFF000000000000L, 0xFF00000000000000L};
@@ -60,20 +54,7 @@ public class moveGenTesting {
                     0x8040201008040201L, 0x4020100804020100L, 0x2010080402010000L, 0x1008040201000000L,
                     0x804020100000000L, 0x402010000000000L, 0x201000000000000L, 0x100000000000000L};
 
-    public ArrayList<Integer> getTacticalMoves() {
-        return tacticalMoves;
-    }
-    public ArrayList<Integer> getQuietMoves() {
-        return quietMoves;
-    }
-
-    public ArrayList<Integer> getAllMoves() {
-        ArrayList<Integer> allMoves = tacticalMoves;
-        allMoves.addAll(quietMoves);
-        return allMoves;
-    }
-
-    public int addMove(int start, int dest, int flag, int promoPiece) {
+    public int addMove(int start, int dest, int startPiece, int flag, int promoPiece) {
         /* Notes:
         16 BIT INT: 0000 0000 0000 0000
         BITS 0-5: START SQUARE
@@ -81,67 +62,7 @@ public class moveGenTesting {
         BITS 12-13: PIECE FLAG- 0=REGULAR MOVE; CASTLE = 1; EN PASSANT = 2; PROMOTION = 3
         BITS: 14-15: PROMOPIECE- KNIGHT PROMO/NON PROMOTION MOVE = 0, BISHOP PROMO = 1, ROOK PROMO = 2, QUEEN PROMO = 3
          */
-        return (start | dest << 6 | flag << 12 | promoPiece << 14);
-    }
-
-    public void clearMoves() {
-        tacticalMoves.clear();
-        quietMoves.clear();
-        checks.clear();
-    }
-
-    public void generatePseudoLegal(long tp, long tn, long tb, long tr, long tq, long tk, int lastPawnJump,
-                                                  int turnCastle, int turn) {
-        clearMoves();
-        if (turn == 1) { pseudoWhitePawn(tp, lastPawnJump);}
-        if (turn == -1) { pseudoBlackPawn(tp, lastPawnJump); }
-        allPseudoKnight(tn);
-        pseudoBishop(tb);
-        pseudoRook(tr);
-        pseudoQueen(tq);
-        pseudoKing(tk, turnCastle);
-
-        //generates pseudo legal moves and stores to legalMoves
-    }
-    public void moveGenerator(long wp, long wn, long wb, long wr, long wq, long wk, long bp, long bn, long bb,
-                                            long br, long bq, long bk, int turn, int wCastle, int bCastle, int lastPawnJump) {
-        setSquareStatus(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn);
-        if (turn == 1) { //if white to move
-            generatePseudoLegal(wp, wn, wb, wr, wq, wk, lastPawnJump, wCastle, turn);
-            int i = 0;
-            int lstSize = tacticalMoves.size();
-            while (i < lstSize) {
-                if (checkLegality(tacticalMoves.get(i), wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn)) {i++;}
-                else {
-                    tacticalMoves.remove(i);
-                    lstSize = tacticalMoves.size();}
-            }
-            lstSize = quietMoves.size();
-            while (i < lstSize) {
-                if (checkLegality(quietMoves.get(i), wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn)) {i++;}
-                else {
-                    quietMoves.remove(i);
-                    lstSize = quietMoves.size();}
-            }
-        } if (turn == -1) { //if black to move
-            generatePseudoLegal(bp, bn, bb, br, bq, bk, lastPawnJump, bCastle, turn);
-            int i = 0;
-            int lstSize = tacticalMoves.size();
-            while (i < lstSize) {
-                if (checkLegality(tacticalMoves.get(i), bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk, turn)) {i++;}
-                else {
-                    tacticalMoves.remove(i);
-                    lstSize = tacticalMoves.size();}
-            }
-            lstSize = quietMoves.size();
-            while (i < lstSize) {
-                if (checkLegality(quietMoves.get(i), bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk, turn)) {i++;}
-                else {
-                    quietMoves.remove(i);
-                    lstSize = quietMoves.size();}
-            }
-        }
-        //legalMoves initially contains all legal and pseudolegal, then trimmed down to legal
+        return (start | dest << 6 | startPiece << 12 | flag << 15 | promoPiece << 17);
     }
 
     public void setSquareStatus(long wp, long wn, long wb, long wr, long wq, long wk, long bp,
@@ -159,6 +80,47 @@ public class moveGenTesting {
         empty = ~occupied;
     }
 
+    public ArrayList<Integer> generatePseudoLegal(long tp, long tn, long tb, long tr, long tq, long tk,
+                                                  int lastPawnJump, int turnCastle, int turn, ArrayList<Integer> pseudoTactical, ArrayList<Integer> pseudoQuiet) {
+        if (turn == 1) {
+            pseudoWhitePawnTactical(tp, lastPawnJump, pseudoTactical);
+            pseudoWhitePawnQuiet(tp, pseudoQuiet);
+        } if (turn == -1) {
+            pseudoBlackPawnTactical(tp, lastPawnJump, pseudoTactical);
+            pseudoBlackPawnQuiet(tp, pseudoQuiet);
+        }
+        pseudoKnightMoves(tn, pseudoTactical, pseudoQuiet);
+        pseudoBishopMoves(tb, pseudoTactical, pseudoQuiet);
+        pseudoRookMoves(tr, pseudoTactical, pseudoQuiet);
+        pseudoQueenMoves(tq, pseudoTactical, pseudoQuiet);
+        pseudoKingMoves(tk, turnCastle, pseudoTactical, pseudoQuiet);
+
+        return pseudoTactical;
+        //generates pseudo legal moves and stores to legalMoves
+    }
+
+    public void generateAllLegalMoves(long[] pcBBs, int turn, int wCastle, int bCastle, int lastPawnJump,
+                                      ArrayList<Integer>captures, ArrayList<Integer> quietMoves, ArrayList<Integer> checks) {
+        setSquareStatus(pcBBs[0], pcBBs[1], pcBBs[2], pcBBs[3], pcBBs[4], pcBBs[5], pcBBs[6], pcBBs[7], pcBBs[9],
+                pcBBs[9], pcBBs[10], pcBBs[11], turn);
+        if (turn == 1) { //if white to move
+            generatePseudoLegal(pcBBs[6], pcBBs[7], pcBBs[8], pcBBs[9], pcBBs[10], pcBBs[11],
+                    lastPawnJump, wCastle, turn, captures, quietMoves);
+
+            legalCheckTactical(captures, pcBBs, turn);
+
+            legalCheckQuiet(quietMoves, pcBBs, turn);
+
+        } if (turn == -1) { //if black to move
+            generatePseudoLegal(pcBBs[0], pcBBs[1], pcBBs[2], pcBBs[3], pcBBs[4], pcBBs[5],
+                    lastPawnJump, bCastle, turn, captures, quietMoves);
+
+            legalCheckTactical(captures, pcBBs, turn);
+
+            legalCheckQuiet(quietMoves, pcBBs, turn);
+        }
+    }
+
     public Boolean squareInCheck(int sq, long ep, long en, long eb, long er, long eq, long ek, int turn) {
         //checks if square is in check. Used for seeing if king in check, but also for castling purposes
         if (turn == 1) { //if pawn checks, return true
@@ -169,90 +131,68 @@ public class moveGenTesting {
             if (((NOT_H >>> sq & 1) == 1) && ((ep >>> (sq - 9) & 1) == 1)) { return true; } //right pawn check
         }
         return ((knightAttackGen(sq) & en) != 0) | ((diagSliding(sq) & (eb | eq)) != 0) |
-                ((rankFileSliding(sq) & (er| eq)) != 0) | ((kingAttackGen(sq) & ek) != 0);
+                ((rankFileSliding(sq) & (er | eq)) != 0) | ((kingAttackGen(sq) & ek) != 0);
     }
 
-    @SuppressWarnings("DuplicateExpressions")
-    public Boolean checkLegality(int pMove, long tp, long tn, long tb, long tr, long tq, long tk, long ep, long en,
-                                 long eb, long er, long eq, long ek, int turn) {
-        //takes a pseudolegal move and checks if it is legal
-        //maps pseudolegal bitboards to original bitboard to undo move
+    public void legalCheckTactical(ArrayList<Integer> captures, long[] pcBBs, int turn) {
+        long[] tp = new long[6], ep = new long[6];
+        if (turn == 1) {
+            tp = Arrays.copyOfRange(pcBBs, 0, 6);
+            ep = Arrays.copyOfRange(pcBBs, 6, pcBBs.length);}
+        if (turn == -1) {
+            tp = Arrays.copyOfRange(pcBBs, 6, pcBBs.length);
+            ep = Arrays.copyOfRange(pcBBs, 0, 6);
+        } for (int i = 0; i < captures.size(); i++) {
+            int pMove = captures.get(i);
+            int start = pMove & 0b111111;
+            int dest = pMove >>> 6 & 0b111111;
+            int moveType = pMove >>> 15 & 0b11;
+            int pieceType = pMove >>> 12 & 0b111;
+            switch (moveType) {
+                case 0 -> { //regular move
+                    tp[pieceType] = (tp[pieceType] & ~(1L << (start))) | (1L << (dest));
+                } case 1 -> { //castling
 
-        //&~ = taking piece off bitboard
-        //| = adding piece to bitboard
+                } case 2 -> { //en passant
+
+                } case 3 -> { //promotion
+
+                }
+            }
+        }
+    }
+
+    public void legalCheckQuiet(ArrayList<Integer> quietMoves, long[] pcBBs, int turn) {
+
+    }
+
+    public Boolean checkLegalityQuiet(int pMove, long tp, long tn, long tb, long tr, long tq, long tk, long ep, long en,
+                                      long eb, long er, long eq, long ek, int turn, ArrayList<Integer> checks) {
+        //for checking quiet moves
         int start = pMove & 0b111111;
         int dest = pMove >>> 6 & 0b111111;
-        int moveType = pMove >>> 12 & 0b11;
-        int promo = pMove >>> 14 & 0b11;
-
-        if ((tp >>> start & 1) == 1) {
-            switch (moveType) { //checking pawn move move (normal, en passant, promotion
-                case 0 -> tp = (tp & ~(1L << (start))) | (1L << (dest)); //if normal move
-                case 2 ->{
+        int moveType = pMove >>> 15 & 0b11;
+        switch (moveType) {
+            //only checking for normal moves and castling for quiet moves
+            case 0 -> {//movetype is normal move
+                if ((tp >>> start & 1) == 1) { //pawn
                     tp = (tp & ~(1L << (start))) | (1L << (dest));
-                    if (turn == 1) { //for changing enemy pawn bitboards
-                        ep = ep & ~(1L << (dest - 8));
-                    }
-                    if (turn == -1) {
-                        ep = ep & ~(1L << (dest + 8));}
-                }
-                case 3 -> { //if promotion
-                    tp = tp & ~(1L << (start)); //change turn pawn bitboards
-                    switch (promo) { //changing promotion piece bitboards is applicable
-                        case 0 -> tn = tn | (1L << dest);
-                        case 1 -> tb = tb | (1L << dest);
-                        case 2 -> tr = tr | (1L << dest);
-                        case 3 -> tq = tq | (1L << dest);
-                    }
+                } if ((tn >>> start & 1) == 1) { //knight
+                    tn = (tn & ~(1L << (start))) | (1L << (dest));
+                } if ((tb >>> start & 1) == 1) { //bishop
+                    tb = (tb & ~(1L << (start))) | (1L << (dest));
+                } if ((tr >>> start & 1) == 1) { //rook
+                    tr = (tr & ~(1L << (start))) | (1L << (dest));
+                } if ((tq >>> start & 1) == 1) { //queen
+                    tq = (tq & ~(1L << (start))) | (1L << (dest));
+                } if ((tk >>> start & 1) == 1) { //queen
+                    tk = (tk & ~(1L << (start))) | (1L << (dest));
                 }
             }
-            /*if (moveType == 3) { //if promotion
-                tp = tp & ~(1L << (start)); //change turn pawn bitboards
-                switch (promo){ //changing promotion piece bitboards is applicable
-                    case 0-> tn = tn | (1L << dest);
-                    case 1-> tb = tb | (1L << dest);
-                    case 2-> tr = tr | (1L << dest);
-                    case 3-> tq = tq | (1L << dest);
-                }
-            }
-            else {
-                tp = (tp & ~(1L << (start))) | (1L << (dest)); // making the pseudomove
-                if (moveType == 2) { //if en passant
-                    if (turn == 1) { //for changing enemy pawn bitboards
-                        ep = ep & ~(1L << (dest - 8));
-                    }
-                    if (turn == -1) {
-                        ep = ep & ~(1L << (dest + 8));}
-                }
-            }*/
-        } if ((tn >>> start & 1) == 1) { //knight
-            tn = (tn & ~(1L << (start))) | (1L << (dest));
-        } if ((tb >>> start & 1) == 1) { //bishop
-            tb = (tb & ~(1L << (start))) | (1L << (dest));
-        } if ((tr >>> start & 1) == 1) { //rook
-            tr = (tr & ~(1L << (start))) | (1L << (dest));
-        } if ((tq >>> start & 1) == 1) { //queen
-            tq = (tq & ~(1L << (start))) | (1L << (dest));
-        } if ((tk >>> start & 1) == 1) { //king
-            tk = (tk & ~(1L << (start))) | (1L << (dest));
-            switch (moveType) {
-                case 1 -> { //if castling
-                    if (squareInCheck(start, ep, en, eb, er, eq, ek, turn)) {return false;}
-                    //if about to castle but king is in check, return false
-                    if (start > dest) { //kingside castling
-                        if (squareInCheck(Long.numberOfTrailingZeros(tk) + 1, ep, en, eb, er, eq, ek, turn)) {return false;}
-                        //if king not in check but moves thru check when castling, return False
-                        tr = (tr & ~(1L<<(dest - 1))) | (1L << (dest + 1));
-                    } if (start < dest) { //queenside castling
-                        if (squareInCheck(Long.numberOfTrailingZeros(tk) - 1, ep, en, eb, er, eq, ek, turn)) {return false;}
-                        //if king not in check but moves thru check when castling, return False
-                        tr = (tr & ~(1L<<(dest + 2))) | (1L << (dest - 1));
-                    }
-                }
-                case 0 -> {}
-            }
-            /*if (moveType == 1) { //if castling
+
+            case 1 -> { //movetype is castling
                 if (squareInCheck(start, ep, en, eb, er, eq, ek, turn)) {return false;}
+                tk = (tk & ~(1L << (start))) | (1L << (dest));
                 //if about to castle but king is in check, return false
                 if (start > dest) { //kingside castling
                     if (squareInCheck(Long.numberOfTrailingZeros(tk) + 1, ep, en, eb, er, eq, ek, turn)) {return false;}
@@ -263,25 +203,89 @@ public class moveGenTesting {
                     //if king not in check but moves thru check when castling, return False
                     tr = (tr & ~(1L<<(dest + 2))) | (1L << (dest - 1));
                 }
-            }*/
+            }
         }
+        //update occupancy bitboards from new piece bitboards
+        long origTPs = turnPieces;
+        long origEmpty = empty;
+        long origOcc = occupied;
+        turnPieces = tp | tn | tb | tr | tq;
+        occupied = turnPieces | enemyPieces | tk | ek;
+        empty = ~occupied;
+        if (squareInCheck(Long.numberOfTrailingZeros(tk), ep, en, eb, er, eq, ek, turn)) {
+            turnPieces = origTPs;
+            empty = origEmpty;
+            occupied = origOcc;
+            return false;
+        }
+        if (squareInCheck(Long.numberOfTrailingZeros(ek), tp, tn, tb, tr, tq, tk, turn)) {
+            //if move is legal and puts enemy king in check, move it to checks array
+            turnPieces = origTPs;
+            empty = origEmpty;
+            occupied = origOcc;
+            checks.add(pMove);
+            return false;
+        }
+        turnPieces = origTPs;
+        empty = origEmpty;
+        occupied = origOcc;
+        return true; // if no checks found, return true
+    }
 
+    public Boolean checkLegalityTactical(int pMove, long tp, long tn, long tb, long tr, long tq, long tk, long ep, long en,
+                                         long eb, long er, long eq, long ek, int turn, ArrayList<Integer> checks) {
+        //for checking quiet moves
+        int start = pMove & 0b111111;
+        int dest = pMove >>> 6 & 0b111111;
+        int moveType = pMove >>> 15 & 0b11;
+        int promo = pMove >>> 17 & 0b11;
+        switch (moveType) {
+            //only checking for normal moves and castling for quiet moves
+            case 0 -> {//movetype is normal move
+                if ((tp >>> start & 1) == 1) { //pawn
+                    tp = (tp & ~(1L << (start))) | (1L << (dest));
+                } if ((tn >>> start & 1) == 1) { //knight
+                    tn = (tn & ~(1L << (start))) | (1L << (dest));
+                } if ((tb >>> start & 1) == 1) { //bishop
+                    tb = (tb & ~(1L << (start))) | (1L << (dest));
+                } if ((tr >>> start & 1) == 1) { //rook
+                    tr = (tr & ~(1L << (start))) | (1L << (dest));
+                } if ((tq >>> start & 1) == 1) { //queen
+                    tq = (tq & ~(1L << (start))) | (1L << (dest));
+                } if ((tk >>> start & 1) == 1) { //queen
+                    tk = (tk & ~(1L << (start))) | (1L << (dest));
+                }
+            }
+
+            case 2 -> { //if movetype is en passant
+                tp = (tp & ~(1L << (start))) | (1L << (dest));
+                if (turn == 1) { //for changing enemy pawn bitboards
+                    ep = ep & ~(1L << (dest - 8)); //if white playing en passant
+                } if (turn == -1) {
+                    ep = ep & ~(1L << (dest + 8));} //if black playing en passant
+            }
+
+            case 3 -> { //if movetype is promotion
+                tp = tp & ~(1L << (start)); //change turn pawn bitboards
+                switch (promo) { //changing promotion piece bitboards is applicable
+                    case 0 -> tn = tn | (1L << dest);
+                    case 1 -> tb = tb | (1L << dest);
+                    case 2 -> tr = tr | (1L << dest);
+                    case 3 -> tq = tq | (1L << dest);
+                }
+            }
+        }
         //checking if capture at dest square
-        switch ((int)(ep >>> dest & 1)) { //enemy pawn captured
-            case 0 -> {}
-            case 1 -> ep = ep & ~(1L << (dest));
-        } switch ((int)(en >>> dest & 1)) { // enemy knight captured
-            case 0 -> {}
-            case 1 -> en = en & ~(1L << (dest));
-        } switch ((int)(eb >>> dest & 1)) { // enemy bishop captured
-            case 0 -> {}
-            case 1 -> eb = eb & ~(1L << (dest));
-        } switch ((int)(er >>> dest & 1)) { // enemy rook captured
-            case 0 -> {}
-            case 1 -> er = er & ~(1L << (dest));
-        } switch ((int)(eq >>> dest & 1)) { // enemy queen captured
-            case 0 -> {}
-            case 1 -> eq = eq & ~(1L << (dest));
+        if ((ep >>> dest & 1) == 1) {
+            ep = ep & ~(1L << (dest));
+        } if ((en >>> dest & 1) == 1) {
+            en = en & ~(1L << (dest));
+        } if ((eb >>> dest & 1) == 1) {
+            eb = eb & ~(1L << (dest));
+        } if ((er >>> dest & 1) == 1) {
+            er = er & ~(1L << (dest));
+        } if ((eq >>> dest & 1) == 1) {
+            eq = eq & ~(1L << (dest));
         }
 
         //update occupancy bitboards from new piece bitboards
@@ -302,6 +306,15 @@ public class moveGenTesting {
             occupied = origOcc;
             return false;
         }
+        /*if (squareInCheck(Long.numberOfTrailingZeros(ek), tp, tn, tb, tr, tq, tk, turn)) {
+            //if move is legal and puts enemy king in check, move it to checks array
+            turnPieces = origTPs;
+            enemyPieces = origEnemy;
+            empty = origEmpty;
+            occupied = origOcc;
+            checks.add(pMove);
+            return false;
+        }*/
         turnPieces = origTPs;
         enemyPieces = origEnemy;
         empty = origEmpty;
@@ -312,19 +325,9 @@ public class moveGenTesting {
     public long rankFileSliding(int pos) {  //horizontal and vertical sliding
         long slider = 0x1L << pos;
         long rankOccupancy = RANK_MASKS[pos / 8] & occupied; //horizontal piece slide
-        /*long posRankAttacks = (rankOccupancy ^ (rankOccupancy - 2 * slider)) & (enemyPieces | empty)
-                & RANK_MASKS[pos / 8]; //positive rank
-                ^^^example    */
-        /*long negRankAttacks = (rankOccupancy ^ Long.reverse(Long.reverse(rankOccupancy) - 2 * Long.reverse(slider))) &
-                (enemyPieces | empty) & RANK_MASKS[pos / 8]; //negative rank   */
         long posNegRankAttacks = ((rankOccupancy - 2 * slider) ^ Long.reverse(Long.reverse(rankOccupancy) - 2 * Long.reverse(slider))) &
                 RANK_MASKS[pos / 8];
         long fileOccupancy = FILE_MASKS[pos % 8] & occupied; //check file
-        //long posFileAttacks = (fileOccupancy ^ (fileOccupancy - 2 * slider)) & (enemyPieces | empty) & FILE_MASKS[pos % 8];
-        //pos file
-        /*long negFileAttacks = (fileOccupancy ^ Long.reverse(Long.reverse(fileOccupancy) - 2 * Long.reverse(slider))) &
-                (enemyPieces | empty) & FILE_MASKS[pos % 8]; //
-                ^^^ example neg file*/
         long posNegFileAttacks = ((fileOccupancy - 2 * slider) ^ Long.reverse(Long.reverse(fileOccupancy) - 2 * Long.reverse(slider))) &
                 FILE_MASKS[pos % 8];
         return (posNegRankAttacks| posNegFileAttacks);
@@ -335,215 +338,130 @@ public class moveGenTesting {
         long diag_occ = occupied & TR_BL_DIAG_MASKS[(pos / 8) + (pos % 8)]; //first check top right bottom left diag
         long posNeg_TRBL = ((diag_occ - 2 * slider) ^ Long.reverse(Long.reverse(diag_occ) - 2 * Long.reverse(slider))) &
                 TR_BL_DIAG_MASKS[(pos / 8) + (pos % 8)];
-        /*long posAttacks_TRBL = (diag_occ ^ (diag_occ - 2 * slider)) & (enemyPieces | empty) &
-                (TR_BL_DIAG_MASKS[(pos / 8) + (pos % 8)]);
-        long negAttacks_TRBL = (diag_occ ^ Long.reverse((Long.reverse(diag_occ) - 2 * Long.reverse(slider)))) &
-                (enemyPieces | empty) & TR_BL_DIAG_MASKS[(pos / 8) + (pos % 8)];      */
         diag_occ = occupied & TL_BR_DIAG_MASKS[(pos / 8) + 7 - (pos % 8)]; //check top left bot right diag
         long posNeg_TLBR = ((diag_occ - 2 * slider) ^ Long.reverse(Long.reverse(diag_occ) - 2 * Long.reverse(slider))) &
                 TL_BR_DIAG_MASKS[(pos / 8) + 7 - (pos % 8)];
-        /*long posAttacks_TLBR = (diag_occ ^ (diag_occ - 2 * slider)) & (enemyPieces | empty) &
-                TL_BR_DIAG_MASKS[(pos / 8) + 7 - (pos % 8)];
-        long negAttacks_TLBR = (diag_occ ^ Long.reverse((Long.reverse(diag_occ) - 2 * Long.reverse(slider)))) &
-                (enemyPieces | empty) & TL_BR_DIAG_MASKS[(pos / 8) + 7 - (pos % 8)];  */
         return (posNeg_TRBL | posNeg_TLBR);
     }
 
-    public void promoCheckTactical(long wp, int start, int dest, long rank) {
-        //given rank (rank 2 for black or rank 7 for white) if pawn at rank 2 or 7, then add promotion move
-        switch ((int)((wp >>> (start) & rank >>> (start) & 1) )) {  //checks if startpos is at rank 7
+    public void promoCheckCaptures(long tp, int start, int dest, long rank, ArrayList<Integer> pseudoTactical) {
+        switch ((int)((tp >>> (start) & rank >>> (start) & 1) )) {  //checks if startpos is at rank 7
             case 1 -> {
-                tacticalMoves.add(addMove(start, dest, 3, 3));
-                tacticalMoves.add(addMove(start, dest, 3, 2));
-                tacticalMoves.add(addMove(start, dest, 3, 1));
-                tacticalMoves.add(addMove(start, dest, 3, 0));
-            } case 0 -> tacticalMoves.add(addMove(start, dest, 0, 0));  //if not then add normal move
-        }
-    }
-    public void promoCheckQuiet(long wp, int start, int dest, long rank) {
-        //given rank (rank 2 for black or rank 7 for white) if pawn at rank 2 or 7, then add promotion move
-        switch ((int)((wp >>> (start) & rank >>> (start) & 1) )) {
-            case 1 -> {
-                tacticalMoves.add(addMove(start, dest, 3, 3));
-                tacticalMoves.add(addMove(start, dest, 3, 2));
-                tacticalMoves.add(addMove(start, dest, 3, 1));
-                tacticalMoves.add(addMove(start, dest, 3, 0));
-            } case 0 -> quietMoves.add(addMove(start, dest, 0, 0));
-        }
-
-        /*if ((wp >>> (start) & rank >>> (start) & 1) == 1) { //checks if startpos is at rank 7
-            tacticalMoves.add(addMove(start, dest, 3, 3));
-            tacticalMoves.add(addMove(start, dest, 3, 2));
-            tacticalMoves.add(addMove(start, dest, 3, 1));
-            tacticalMoves.add(addMove(start, dest, 3, 1));
-        } else { quietMoves.add(addMove(start, dest, 0, 0)); } //if not then add normal move*/
-
-    }
-
-    public void promoCheckCaptures(long wp, int start, int dest, long rank, ArrayList<Integer> pseudoTactical) {
-        switch ((int)((wp >>> (start) & rank >>> (start) & 1) )) {  //checks if startpos is at rank 7
-            case 1 -> {
-                pseudoTactical.add(addMove(start, dest, 3, 3));
-                pseudoTactical.add(addMove(start, dest, 3, 2));
-                pseudoTactical.add(addMove(start, dest, 3, 1));
-                pseudoTactical.add(addMove(start, dest, 3, 0));
-            } case 0 -> pseudoTactical.add(addMove(start, dest, 0, 0));  //if not then add normal move
+                pseudoTactical.add(addMove(start, dest, 0,3, 3));
+                pseudoTactical.add(addMove(start, dest, 0, 3, 2));
+                pseudoTactical.add(addMove(start, dest, 0, 3, 1));
+                pseudoTactical.add(addMove(start, dest, 0, 3, 0));
+            } case 0 -> pseudoTactical.add(addMove(start, dest, 0, 0, 0));  //if not then add normal move
         }
     }
 
     public void pseudoWhitePawnTactical(long wp, int lastPawnJump, ArrayList<Integer>pseudoTactical) {
+        //for moves that change immediate material imbalance
         long pawnCaptureRight = wp & ~H_FILE & enemyPieces>>>7; //bitwise right shift 7 for right pawn captures
         long pawnCaptureLeft = wp & ~A_FILE & enemyPieces>>>9; //bitwise right shift 9 for left pawn capture
         long pawnPromotion8 = (wp & RANK_7) & (empty >>> 8); //non capture pawn promotions
-        long epSquare = 0L;
-        if (lastPawnJump != -1) { epSquare = 1L << lastPawnJump;}
-        if (((wp & ~A_FILE) & epSquare >>> 9) != 0) {
-            pseudoTactical.add(addMove(lastPawnJump - 9, lastPawnJump, 2, 0));
-        } if (((wp & ~H_FILE) & epSquare >>> 7) != 0) {
-            pseudoTactical.add(addMove(lastPawnJump - 7, lastPawnJump, 2, 0));
-        } for (int i = Long.numberOfTrailingZeros(pawnCaptureRight); i < 64 - Long.numberOfLeadingZeros(pawnCaptureRight);
-               i++) { //right pawn capture
+        long epSquare = 0L; //for en passant
+        if (lastPawnJump != -1) { epSquare = 1L << lastPawnJump;} //checking for en passant
+
+        if (((wp & ~A_FILE) & epSquare >>> 9 & empty >>> 9) != 0) { //left en passant
+            pseudoTactical.add(addMove(lastPawnJump - 9, lastPawnJump, 0, 2, 0));
+        } if (((wp & ~H_FILE) & epSquare >>> 7 & empty >>> 7) != 0) { //right en passant
+            pseudoTactical.add(addMove(lastPawnJump - 7, lastPawnJump, 0, 2, 0));
+        }
+        for (int i = Long.numberOfTrailingZeros(pawnCaptureRight); i < 64 - Long.numberOfLeadingZeros(pawnCaptureRight);
+             i++) { //right pawn capture
             if ((pawnCaptureRight >>> i & 1) == 1) {promoCheckCaptures(wp, i, i + 7, RANK_7, pseudoTactical);}
         } for (int i = Long.numberOfTrailingZeros(pawnCaptureLeft); i < 64 - Long.numberOfLeadingZeros(pawnCaptureLeft);
                i++) { //left pawn capture
             if ((pawnCaptureLeft >>> i & 1) == 1) {promoCheckCaptures(wp, i, i + 9, RANK_7, pseudoTactical);}
         } for (int i = Long.numberOfTrailingZeros(pawnPromotion8); i < 64 - Long.numberOfLeadingZeros(pawnPromotion8); i++) {
             if ((pawnPromotion8 >>> i & 1) == 1) {
-                pseudoTactical.add(addMove(i, i + 8, 3, 3));
-                pseudoTactical.add(addMove(i, i + 8, 3, 2));
-                pseudoTactical.add(addMove(i, i + 8, 3, 1));
-                pseudoTactical.add(addMove(i, i + 9, 3, 0));
+                pseudoTactical.add(addMove(i, i + 8, 0, 3, 3));
+                pseudoTactical.add(addMove(i, i + 8, 0, 3, 2));
+                pseudoTactical.add(addMove(i, i + 8, 0, 3, 1));
+                pseudoTactical.add(addMove(i, i + 8, 0, 3, 0));
             }
         }
     }
 
-    public void pseudoWhitePawnQuietChecks(long wp, ArrayList<Integer> pseudoQuietChecks) {
+    public void pseudoWhitePawnQuiet(long wp, ArrayList<Integer> pseudoQuiet) {
+        //for quiet moves and checks. Quiet moves and checks differentaited later
         long verticalMove8 = (wp & ~RANK_7) & (empty >>> 8); //bitwise right shift for pawn moving up one square
         long verticalMove16 = verticalMove8 & RANK_MASKS[1] & (empty >>> 16); //pawn vertical jump 2 squares
-        for (int i = Long.numberOfTrailingZeros(verticalMove8); i < Long.numberOfLeadingZeros(verticalMove8); i++) {
-            //pawn move up 1
-            if ((verticalMove8 >>> i & 1) == 1) { pseudoQuietChecks.add(addMove(i, i + 8, 0, 0)); }
-        } for (int i = Long.numberOfTrailingZeros(verticalMove16); i < Long.numberOfLeadingZeros(verticalMove16); i++) {
-            if ((verticalMove16 >>> i & 1) == 1) {pseudoQuietChecks.add(addMove(i, i + 16, 0, 0)); }
+
+        //check pawn move up 1
+        for (int i = Long.numberOfTrailingZeros(verticalMove8); i < 64 - Long.numberOfLeadingZeros(verticalMove8); i++) {
+            if ((verticalMove8 >>> i & 1) == 1) { pseudoQuiet.add(addMove(i, i + 8, 0, 0, 0)); }
+        }
+
+        //check pawn move up 2
+        for (int i = Long.numberOfTrailingZeros(verticalMove16); i < 64 - Long.numberOfLeadingZeros(verticalMove16); i++) {
+            if ((verticalMove16 >>> i & 1) == 1) {pseudoQuiet.add(addMove(i, i + 16, 0, 0, 0)); }
         }
     }
 
-    public void pseudoWhitePawn(long wp, int lastPawnJump) {
-        long pawnCaptureRight = wp & ~H_FILE & enemyPieces>>>7; //bitwise right shift 7 for right pawn captures
-        long pawnCaptureLeft = wp & ~A_FILE & enemyPieces>>>9; //bitwise right shift 9 for left pawn capture
-        long verticalMove8 = wp & (empty >>> 8); //bitwise right shift for pawn moving up one square
-        long verticalMove16 = verticalMove8 & RANK_MASKS[1] & (empty >>> 16); //pawn vertical jump 2 squares
-        long epSquare = 0L;
-        if (lastPawnJump != -1) { epSquare = 1L << lastPawnJump;}
-
-        if (((wp & ~A_FILE) & epSquare >>> 9) != 0) {
-            tacticalMoves.add(addMove(lastPawnJump - 9, lastPawnJump, 2, 0));
-        } if (((wp & ~H_FILE) & epSquare >>> 7) != 0) {
-            tacticalMoves.add(addMove(lastPawnJump - 7, lastPawnJump, 2, 0));
-        }
-        //looping thru each pawn
-        for (int i = Long.numberOfTrailingZeros(pawnCaptureRight); i < 64 - Long.numberOfLeadingZeros(pawnCaptureRight);
-             i++) { //right pawn capture
-            if ((pawnCaptureRight >>> i & 1) == 1) {promoCheckTactical(wp, i, i + 7, RANK_7);}
-        } for (int i = Long.numberOfTrailingZeros(pawnCaptureLeft); i < 64 - Long.numberOfLeadingZeros(pawnCaptureLeft);
-               i++) { //left pawn capture
-            if ((pawnCaptureLeft >>> i & 1) == 1) {promoCheckTactical(wp, i, i + 9, RANK_7);}
-        } for (int i = Long.numberOfTrailingZeros(verticalMove8); i < Long.numberOfLeadingZeros(verticalMove8); i++) {
-            //pawn move up 1
-            if ((verticalMove8 >>> i & 1) == 1) {promoCheckQuiet(wp, i, i + 8, RANK_7); }
-        } for (int i = Long.numberOfTrailingZeros(verticalMove16); i < Long.numberOfLeadingZeros(verticalMove16); i++) {
-            if ((verticalMove16 >>> i & 1) == 1) {quietMoves.add(addMove(i, i + 16, 0, 0)); }
-        }
-
-        /*for (int i = Long.numberOfTrailingZeros(wp); i < 64 - Long.numberOfLeadingZeros(wp); i++) {
-            if ((wp >>> i & 1) == 1) { //if pawn exists at ith right shift
-                if ((pawnCaptureRight >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheckTactical(wp, i, i + 7, RANK_7);
-                } else if (((RANK_5 >>> i & NOT_H >>> i & 1) == 1) & (lastPawnJump == i + 7)  &
-                        ((empty >>> (i + 7) & 1) == 1)) {
-                    tacticalMoves.add(addMove(i, lastPawnJump, 2, 0));
-                    //if capture square empty, check right en passant
-                }
-                if ((pawnCaptureLeft >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheckTactical(wp, i, i + 9, RANK_7);
-                } else if (((RANK_5 >>> i & NOT_A>>> i & 1) == 1) & (lastPawnJump == i + 9) &
-                        ((empty >>> (i + 9) & 1) == 1)) {
-                    tacticalMoves.add(addMove(i, lastPawnJump, 2, 0));
-                    //if capture square empty, check left en passant
-                }
-
-                if ((verticalMove8 >>> i & 1) == 1) { ///check if can move forward one square
-                    promoCheckQuiet(wp, i, i + 8, RANK_7);
-                    //check if pawn can jump 2 squares
-                } if ((verticalMove16 >>> i & 1) == 1) { quietMoves.add(addMove(i, i + 16, 0, 0)); }
-            }
-        }*/
-    }
-
-    public void pseudoBlackPawn(long bp, int lastPawnJump) {
+    public void pseudoBlackPawnTactical(long bp, int lastPawnJump, ArrayList<Integer> pseudoTactical) {
         long pawnCaptureLeft = bp & ~A_FILE & enemyPieces<<7; //bitwise left shift 7 for left pawn captures
         long pawnCaptureRight = bp & ~H_FILE & enemyPieces<<9; //bitwise left shift 9 for right pawn capture
-        long verticalMove8 = bp & (empty << 8); //bitwise right shift for pawn moving up one square
-        long verticalMove16 = verticalMove8 & RANK_MASKS[6] & (empty << 16); //pawn vertical jump 2 squares
-        long epSquare = 0L;
-        if (lastPawnJump != -1) { epSquare = 1L << lastPawnJump;}
+        long pawnPromotion8 = (bp & RANK_2) & (empty << 8); //bitwise right shift for pawn moving up one square
+        long epSquare = 0L; //en passant square
 
-        if (((bp & ~A_FILE) & epSquare << 7) != 0) {
-            tacticalMoves.add(addMove(lastPawnJump + 7, lastPawnJump, 2, 0));
-        } if (((bp & ~H_FILE) & epSquare << 9) != 0) {
-            tacticalMoves.add(addMove(lastPawnJump + 9, lastPawnJump, 2, 0));
-        }
-        //looping thru each pawn
-        for (int i = Long.numberOfTrailingZeros(pawnCaptureRight); i < 64 - Long.numberOfLeadingZeros(pawnCaptureRight);
-             i++) { //right pawn capture
-            if ((pawnCaptureRight >>> i & 1) == 1) { promoCheckTactical(bp, i, i - 9, RANK_2);}
+        if (lastPawnJump != -1) { epSquare = 1L << lastPawnJump;} //set en passant square
+
+        if (((bp & ~A_FILE) & epSquare << 7 & empty << 7) != 0) { //left en passant
+            pseudoTactical.add(addMove(lastPawnJump + 7, lastPawnJump, 0, 2, 0));
+        } if (((bp & ~H_FILE) & epSquare << 9 & empty << 9) != 0) { //right en passant
+            pseudoTactical.add(addMove(lastPawnJump + 9, lastPawnJump, 0, 2, 0));
+        } for (int i = Long.numberOfTrailingZeros(pawnCaptureRight); i < 64 - Long.numberOfLeadingZeros(pawnCaptureRight);
+               i++) { //right pawn capture
+            if ((pawnCaptureRight >>> i & 1) == 1) { promoCheckCaptures(bp, i, i - 9, RANK_2, pseudoTactical);}
         }
         for (int i = Long.numberOfTrailingZeros(pawnCaptureLeft); i < 64 - Long.numberOfLeadingZeros(pawnCaptureLeft);
-               i++) { //left pawn capture
-            if ((pawnCaptureLeft >>> i & 1) == 1) { promoCheckTactical(bp, i, i - 7, RANK_2); }
+             i++) { //left pawn capture
+            if ((pawnCaptureLeft >>> i & 1) == 1) { promoCheckCaptures(bp, i, i - 7, RANK_2, pseudoTactical); }
         }
-        for (int i = Long.numberOfTrailingZeros(verticalMove8); i < 64 - Long.numberOfLeadingZeros(verticalMove8); i++) {
-            //pawn move up 1
-            if ((verticalMove8 >>> i & 1) == 1) {promoCheckQuiet(bp, i, i - 8, RANK_2); }
-        }
-        for (int i = Long.numberOfTrailingZeros(verticalMove16); i < 64 - Long.numberOfLeadingZeros(verticalMove16); i++) {
-            if ((verticalMove16 >>> i & 1) == 1) {quietMoves.add(addMove(i, i - 16, 0, 0)); }
-        }
-        /*for (int i = Long.numberOfTrailingZeros(bp); i < 64 - Long.numberOfLeadingZeros(bp); i++) {
-            if ((bp >>> i & 1) == 1) { //if pawn exists at ith right shift
-                if ((pawnCaptureRight >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheckTactical(bp, i, i - 9, RANK_2);
-                } else if (((RANK_4 >>> i & NOT_H >>> 1 & 1) == 1) & (lastPawnJump == i - 9) &
-                        ((empty >>> (i - 9) & 1) == 1)) {
-                    tacticalMoves.add(addMove(i, lastPawnJump, 2, 0));
-                    //if capture square empty, check right en passant
-                }
-                if ((pawnCaptureLeft >>> i & 1) == 1) { //check for pseudolegal right pawn capture
-                    promoCheckTactical(bp, i, i - 7, RANK_2);
-                } else if (((RANK_4 >>> i & NOT_A >>> 1 & 1) == 1) & (lastPawnJump == i - 7) &
-                        ((empty >>> (i - 7) & 1) == 1)) {
-                    tacticalMoves.add(addMove(i, lastPawnJump, 2, 0));
-                    //if capture square empty, check right en passant
-                }
-
-                if ((verticalMove8 >>> i & 1) == 1) { ///check if can move forward one square
-                    promoCheckQuiet(bp, i, i - 8, RANK_2);
-                    //check if pawn can jump 2 squares
-                } if ((verticalMove16 >>> i & 1) == 1) { quietMoves.add(addMove(i, i - 16, 0, 0)); }
+        //for non capture promotions
+        for (int i = Long.numberOfTrailingZeros(pawnPromotion8); i < 64 - Long.numberOfLeadingZeros(pawnPromotion8); i++) {
+            if ((pawnPromotion8 >>> i & 1) == 1) {
+                pseudoTactical.add(addMove(i, i - 8, 0, 3, 3));
+                pseudoTactical.add(addMove(i, i - 8, 0, 3, 2));
+                pseudoTactical.add(addMove(i, i - 8, 0, 3, 1));
+                pseudoTactical.add(addMove(i, i - 8, 0, 3, 0));
             }
-        }*/
+        }
     }
 
-    public void pseudoPieceAtPos(int i, long atkSqs) {
+    public void pseudoBlackPawnQuiet(long bp, ArrayList<Integer> pseudoQuiet) {
+        //for quiet moves and checks. Quiet moves and checks differentaited later
+        long verticalMove8 = (bp & ~RANK_2) & (empty << 8); //bitwise right shift for pawn moving up one square
+        long verticalMove16 = verticalMove8 & RANK_MASKS[6] & (empty << 16); //pawn vertical jump 2 squares
+
+        //check pawn move up 1
+        for (int i = Long.numberOfTrailingZeros(verticalMove8); i < 64 - Long.numberOfLeadingZeros(verticalMove8); i++) {
+            if ((verticalMove8 >>> i & 1) == 1) { pseudoQuiet.add(addMove(i, i - 8, 0, 0, 0)); }
+        }
+        //check pawn move up 2
+        for (int i = Long.numberOfTrailingZeros(verticalMove16); i < 64 - Long.numberOfLeadingZeros(verticalMove16); i++) {
+            if ((verticalMove16 >>> i & 1) == 1) {pseudoQuiet.add(addMove(i, i - 16, 0, 0, 0)); }
+        }
+    }
+
+    public void pseudoCaptureAtPos(int i, int pieceType, long atkSqs, ArrayList<Integer> pseudoTactical) {
         //given list of attack squares, generate pseudo legal moves for any piece
         for (int sq = Long.numberOfTrailingZeros(atkSqs); sq < 64 - Long.numberOfLeadingZeros(atkSqs); sq++) {
-            if ((atkSqs >>> sq & 1) == 1) {
-                if ((empty >>> sq & 1) == 1) {
-                    quietMoves.add(addMove(i, sq, 0, 0));
-                } if ((enemyPieces >>> sq & 1) == 1) {
-                    tacticalMoves.add(addMove(i, sq, 0, 0));
-                }
-            }}
+            if ((atkSqs >>> sq & enemyPieces >>> sq & 1) == 1) {
+                pseudoTactical.add(addMove(i, sq, pieceType, 0, 0));
+            }
+        }
+    }
+
+    public void pseudoQuietAtPos(int i, int pieceType, long atkSqs, ArrayList<Integer> pseudoQuiet) {
+        //given list of attack squares, generate pseudo legal moves for any piece
+        for (int sq = Long.numberOfTrailingZeros(atkSqs); sq < 64 - Long.numberOfLeadingZeros(atkSqs); sq++) {
+            if ((atkSqs >>> sq & empty >>> sq & 1) == 1) {
+                pseudoQuiet.add(addMove(i, sq, pieceType, 0, 0));
+            }
+        }
     }
 
     public long knightAttackGen(int i) {
@@ -555,51 +473,49 @@ public class moveGenTesting {
         attackGen = attackGen | (nPos << 10 & (NOT_GH)) | (nPos >>> 10 & (NOT_AB)) | (nPos << 6 & (NOT_AB)) |
                 (nPos >>> 6 & (NOT_GH)) | (nPos << 15 & NOT_A) | (nPos >>> 15 & NOT_H) | (nPos << 17 & NOT_H) |
                 (nPos >>> 17 & NOT_A);
-        /*if ((nPos << 10 & (NOT_GH)) != 0) {attackGen = attackGen + (nPos << 10); }
-        if ((nPos >>> 10 & (NOT_AB)) != 0) {attackGen = attackGen + (nPos >>> 10); }
-        if ((nPos << 6 & (NOT_AB)) != 0) {attackGen = attackGen + (nPos << 6); }
-        if ((nPos >>> 6 & (NOT_GH)) != 0) {attackGen = attackGen + (nPos >>> 6); }
-        if ((nPos << 15 & NOT_A) != 0) {attackGen = attackGen + (nPos << 15); }
-        if ((nPos >>> 15 & NOT_H) != 0) {attackGen = attackGen + (nPos >>> 15); }
-        if ((nPos << 17 & NOT_H) != 0) {attackGen = attackGen + (nPos << 17); }
-        if ((nPos >>> 17 & NOT_A) != 0) {attackGen = attackGen + (nPos >>> 17);}*/
 
         return attackGen;
     }
 
-    public void allPseudoKnight(long turnKnight) {
+    public void pseudoKnightMoves(long turnKnight, ArrayList<Integer> pseudoCaptures, ArrayList<Integer> pseudoQuiet) {
         for (int i = Long.numberOfTrailingZeros(turnKnight); i < 64 - Long.numberOfLeadingZeros(turnKnight); i++) {
             if ((turnKnight >>> i & 1) == 1) {
-                pseudoPieceAtPos(i, knightAttackGen(i));}
-        }
-    }
-
-    public void pseudoBishop(long turnBishop) {
-        for (int i = Long.numberOfTrailingZeros(turnBishop); i < 64 - Long.numberOfLeadingZeros(turnBishop); i++) {
-            if ((turnBishop >>> i & 1) == 1) { //if queen at square
-                //find possible attack squares for all files, ranks, diags
-                pseudoPieceAtPos(i, diagSliding(i));
-                //add all attack squares to ArrayList pseudoMoves
+                long knightMoveSquares = knightAttackGen(i);
+                pseudoCaptureAtPos(i, 1, knightMoveSquares, pseudoCaptures);
+                pseudoQuietAtPos(i, 1, knightMoveSquares, pseudoQuiet);
             }
         }
     }
 
-    public void pseudoRook(long turnRook) {
+    public void pseudoBishopMoves(long turnBishop, ArrayList<Integer> pseudoCaptures, ArrayList<Integer> pseudoQuiet) {
+        for (int i = Long.numberOfTrailingZeros(turnBishop); i < 64 - Long.numberOfLeadingZeros(turnBishop); i++) {
+            if ((turnBishop >>> i & 1) == 1) {
+                long bishopMoveSquares = diagSliding(i);
+                pseudoCaptureAtPos(i, 2, bishopMoveSquares, pseudoCaptures);
+                pseudoQuietAtPos(i, 2, bishopMoveSquares, pseudoQuiet);
+            }
+        }
+    }
+
+    public void pseudoRookMoves(long turnRook, ArrayList<Integer> pseudoCaptures, ArrayList<Integer> pseudoQuiet) {
         for (int i = Long.numberOfTrailingZeros(turnRook); i < 64 - Long.numberOfLeadingZeros(turnRook); i++) {
             if ((turnRook >>> i & 1) == 1) { //if queen at square
+                long rookMovesSquares = rankFileSliding(i);
                 //find possible attack squares for all files, ranks, diags
-                pseudoPieceAtPos(i, rankFileSliding(i));
-                //add all attack squares to ArrayList pseudoMoves
+                pseudoCaptureAtPos(i, 3, rookMovesSquares, pseudoCaptures);
+                pseudoQuietAtPos(i, 3, rookMovesSquares, pseudoQuiet);
             }
         }
     }
 
-    public void pseudoQueen(long turnQueen) {
+    public void pseudoQueenMoves(long turnQueen, ArrayList<Integer> pseudoCaptures, ArrayList<Integer> pseudoQuiet) {
         for (int i = Long.numberOfTrailingZeros(turnQueen); i < 64 - Long.numberOfLeadingZeros(turnQueen); i++) {
             if ((turnQueen >>> i & 1) == 1) { //if queen at square
+                long queenMoveSquares = (rankFileSliding(i) | diagSliding(i));
                 //find possible attack squares for all files, ranks, diags
-                pseudoPieceAtPos(i, (rankFileSliding(i) | diagSliding(i)));
-                //add all attack squares to ArrayList pseudoMoves
+                //divide between tactical and quiet moves
+                pseudoCaptureAtPos(i, 4, queenMoveSquares, pseudoCaptures);
+                pseudoQuietAtPos(i, 4, queenMoveSquares, pseudoQuiet);
             }
         }
     }
@@ -608,41 +524,31 @@ public class moveGenTesting {
         //calculate all POTENTIAL pseudo legal moves for knight at position i
         //can also be used to see if king at position i is under attack by king
         long kingPos = 0B1L << i;
-        long attackGen = 0L;
         //generate bitboard for specific position
-        attackGen = attackGen | (kingPos >>> 8 & ~RANK_MASKS[7]) | (kingPos << 8 & ~RANK_MASKS[0]) |
+        long attackGen = (kingPos >>> 8 & ~RANK_MASKS[7]) | (kingPos << 8 & ~RANK_MASKS[0]) |
                 (kingPos >>> 1 & ~FILE_MASKS[7]) | (kingPos << 1 & ~FILE_MASKS[0]) | (kingPos << 9 & ~FILE_MASKS[0]) |
                 (kingPos >>> 9 & ~FILE_MASKS[7]) | (kingPos << 7 & ~FILE_MASKS[7]) | (kingPos >>> 7 & ~FILE_MASKS[0]);
-        /*if ((kingPos & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1L << (i - 8)); } //move down vertically
-        if ((kingPos & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1L << (i + 8)); } //move up vertically
-        if ((kingPos & (~FILE_MASKS[0])) != 0) {attackGen = attackGen + (1L << (i - 1)); } //move right horizontal
-        if ((kingPos & (~FILE_MASKS[7])) != 0) {attackGen = attackGen + (1L << (i + 1)); } //move right horizontal
-        //bottom left diag
-        if ((kingPos & (~FILE_MASKS[7]) & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1L<<(i - 7)); }
-        //bottom right diag
-        if ((kingPos & (~FILE_MASKS[0]) & (~RANK_MASKS[0])) != 0) {attackGen = attackGen + (1L<<(i - 9)); }
-        //top left diag
-        if ((kingPos & (~FILE_MASKS[7]) & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1L<<(i + 9)); }
-        //top right diag
-        if ((kingPos & (~FILE_MASKS[0]) & (~RANK_MASKS[7])) != 0) {attackGen = attackGen + (1L<<(i + 7)); }*/
-
         return attackGen;
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public void pseudoKing(long turnKingBits, int turnCastling) {
+    public void pseudoKingMoves(long turnKingBits, int turnCastling,
+                                ArrayList<Integer> pseudoCaptures, ArrayList<Integer> pseudoQuiet) {
         int kingPos = Long.numberOfTrailingZeros(turnKingBits);
+        long kingMoveSquares = kingAttackGen(kingPos);
+        //checking for tactical moves
+        pseudoCaptureAtPos(kingPos, 5, kingMoveSquares, pseudoCaptures);
 
-        pseudoPieceAtPos(kingPos, kingAttackGen(kingPos));
+        //checking for quiet moves
+        pseudoQuietAtPos(kingPos, 5, kingMoveSquares, pseudoQuiet);
 
         if ((turnCastling & 1) == 1) { //kingside castling
             if ((empty >>> (kingPos - 1) & empty >>> (kingPos - 2) & 1) == 1) {
-                quietMoves.add(addMove(kingPos, kingPos - 2, 1, 0));}
+                pseudoQuiet.add(addMove(kingPos, kingPos - 2, 5, 1, 0));}
         } if ((turnCastling >>> 1 & 1) == 1) { //queenside castling
             if ((empty >>> (kingPos + 1) & empty >>> (kingPos + 2) & empty>>> (kingPos + 3) & 1) == 1) {
-                quietMoves.add(addMove(kingPos, kingPos + 2, 1, 0));}
+                pseudoQuiet.add(addMove(kingPos, kingPos + 2, 5, 1, 0));}
         }
-
     }
 
     public static void main(String[] args) {

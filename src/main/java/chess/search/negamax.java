@@ -34,7 +34,7 @@ public class negamax {
     }
 
     public int iterativeDeepeningSearch(bitboard btb) {
-        btb.setBitboardPos("rnbqkbnr/pppppppp/8/8/1R1P4/8/PP1PPPPP/1NBQKBNR w Kkq - 0 1");
+        btb.setBitboardPos("rnbqkbnr/pp1ppp1p/6p1/2p5/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 1 3");
         btb.printArrayBoard();
         for (int i = 1; i <= maxSearchDepth; i++) {
             currentMaxSearchDepth = i;

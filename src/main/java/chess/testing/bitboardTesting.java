@@ -244,7 +244,9 @@ public class bitboardTesting {
         if (lastPawnJump != -1 & plyCount > pawnJumpPly) {lastPawnJump = -1; pawnJumpPly = -1;}
         checkCastlingRights();
         turn = turn * -1;
-        currentZobrist = zobrist.getZobristKey(wp, wn, wb, wr, wq, wk, bp, bn, bb, br, bq, bk, turn, wCastle, bCastle, lastPawnJump);
+        currentZobrist = zobrist.getZobristKey(pieceBitboards[0], pieceBitboards[1], pieceBitboards[2], pieceBitboards[3],
+                pieceBitboards[4], pieceBitboards[5], pieceBitboards[6], pieceBitboards[7], pieceBitboards[8],
+                pieceBitboards[9], pieceBitboards[10], pieceBitboards[11], turn, wCastle, bCastle, lastPawnJump);
         notateLists();
         if (repCounter.containsKey(currentZobrist)) {repCounter.put(currentZobrist, repCounter.get(currentZobrist) + 1);}
         else {repCounter.put(currentZobrist, 1); }
