@@ -24,4 +24,4 @@ Endgame piece-square tables/tapered evaluation and game phase transitions
 # Example of Results:
 
 To run our code, you should first find the FEN notation of the position you want to run. This is most easily done by opening an online analysis board editor with an FEN function. In the example below, we want to analyze the starting position of the Najdorf Sicilian. To do this, we go to lichess.org's analysis board ([linked here](https://lichess.org/analysis)), input the position, and find the FEN bar, which is directly below the analysis board. Below is an example:
-![alt text]([http://url/to/img.png](https://github.com/wudono1/ChessMonkey/blob/master/run_examples/25_12_23_EXAMPLES/lichessScreenshot.png)https://github.com/wudono1/ChessMonkey/blob/master/run_examples/25_12_23_EXAMPLES/lichessScreenshot.png)
+![alt text](https://github.com/wudono1/ChessMonkey/blob/master/run_examples/25_12_23_EXAMPLES/lichessScreenshot.png)
