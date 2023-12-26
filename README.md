@@ -27,6 +27,6 @@ Endgame piece-square tables/tapered evaluation and game phase transitions
 To run our code, you should first find the FEN notation of the position you want to run. This is most easily done by opening an online analysis board editor with an FEN function. In the example below, we want to analyze the starting position of the Najdorf Sicilian. To do this, we go to lichess.org's analysis board ([linked here](https://lichess.org/analysis)), input the position, and find the FEN bar, which is directly below the analysis board. Below is an example. The FEN notation is highlighted under the board:
 ![alt text](https://github.com/wudono1/ChessMonkey/blob/master/run_examples/25_12_23_EXAMPLES/lichessScreenshot.png)
 
-After finding our FEN notation, we paste the FEN into our negamax.java file (relative path src/main/java/chess/search/negamax.java) into the appropriate line within the method #iterativeDeepeningSearch,
-
-After finding 
+After finding our FEN notation, we paste the FEN into our negamax.java file (relative path src/main/java/chess/search/negamax.java) into the appropriate line within the method
+# iterativeDeepeningSearch
+.
