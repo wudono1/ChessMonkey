@@ -21,7 +21,7 @@ In progress:\
 Static exchange evaluation\
 Endgame piece-square tables/tapered evaluation and game phase transitions
 
-# Example of Results:
+# Sample Result:
 
 
 To run our code, you should first find the FEN notation of the position you want to run. This is most easily done by opening an online analysis board editor with an FEN function. In the example below, we want to analyze the starting position of the Najdorf Sicilian. To do this, we go to lichess.org's analysis board ([linked here](https://lichess.org/analysis)), input the position, and find the FEN bar, which is directly below the analysis board. Below is an example. The FEN notation is highlighted under the board:
