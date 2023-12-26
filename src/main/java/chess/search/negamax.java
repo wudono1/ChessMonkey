@@ -34,16 +34,14 @@ public class negamax {
     }
 
     public int iterativeDeepeningSearch(bitboard btb) {
-        btb.setBitboardPos("rnbqkbnr/pp1ppp1p/6p1/2p5/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 1 3");
+        btb.setBitboardPos("rnbqkb1r/1p2pppp/p2p1n2/8/3NP3/2N5/PPP2PPP/R1BQKB1R w KQkq - 0 6");
         btb.printArrayBoard();
         for (int i = 1; i <= maxSearchDepth; i++) {
             currentMaxSearchDepth = i;
             negamaxFunction(btb, 0, -32000, 32000);
-            System.out.printf("Best eval at iteration %d ply: %s%s%n", i,
+            System.out.printf("Best move at iteration %d ply: %s%s%n", i,
                     SQKEY.get(bestMoveCurrentDepth & 0b111111), SQKEY.get(bestMoveCurrentDepth >>> 6 & 0b111111));
-            System.out.println();
             System.out.printf("Best eval at iteration %d ply: %d%n", i, bestEvalCurrentDepth);
-            System.out.println();
             System.out.println();
             if (bestEvalCurrentDepth > bestEvalOverall) {
                 bestEvalOverall = bestEvalCurrentDepth;
